@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API\BAckend;
+namespace App\Http\Controllers\API\Backend;
 
 use App\Constants\Constants;
 use App\Constants\HTTPStatusCode;
