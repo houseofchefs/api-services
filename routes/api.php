@@ -4,7 +4,7 @@ use App\Http\Controllers\API\Auth\AuthController;
 use App\Http\Controllers\API\Backend\CartController;
 use App\Http\Controllers\API\Backend\CategoryController;
 use App\Http\Controllers\API\Backend\CookController;
-use App\Http\Controllers\API\BAckend\DetailsController;
+use App\Http\Controllers\API\Backend\DetailsController;
 use App\Http\Controllers\API\Backend\DiscountController;
 use App\Http\Controllers\API\Backend\HomeController;
 use App\Http\Controllers\API\Backend\MenuController;
