@@ -14,6 +14,7 @@ use App\Http\Controllers\API\Backend\OrderController;
 use App\Http\Controllers\API\Backend\PreBookingController;
 use App\Http\Controllers\API\Backend\ProductController;
 use App\Http\Controllers\API\Backend\SubCategoryController;
+use App\Http\Controllers\API\Backend\VendorController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -122,7 +123,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
 
         Route::resource("discount", DiscountController::class)->except(['create', 'edit']);
         Route::resource("cart", CartController::class)->except(['create', 'edit', 'show']);
-        Route::resource("categories", CategoryController::class)->only(['index', 'store', 'update'])->middleware('role:super-admin|admin');
+        Route::resource("categories", CategoryController::class)->only(['index', 'store', 'update', 'edit']);
         // Route::resource("sub-category", SubCategoryController::class)->only(['index', 'store', 'update'])->middleware('role:super-admin|admin');
         Route::resource('module', ModuleController::class)->only(['index', 'show']);
         Route::resource('cook', CookController::class)->only(['index', 'show']);
@@ -147,6 +148,9 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('/category-based/menu', 'slotAndCategoryMenuItemsList');
             Route::get('vendors', 'vendorList');
             Route::get('products', 'productList');
+        });
+        Route::prefix('vendor')->controller(VendorController::class)->group(function () {
+            Route::get('list', 'index');
         });
     });
 });

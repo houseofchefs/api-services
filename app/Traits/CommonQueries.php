@@ -35,7 +35,8 @@ trait CommonQueries
      */
     protected function sendOtp($mobile, $guard)
     {
-        $otp = random_int(100000, 999999);
+        // $otp = random_int(100000, 999999);
+        $otp = 123456;
         $code = [
             "mobile"    => $mobile,
             "otp"       => $otp,
@@ -86,7 +87,10 @@ trait CommonQueries
         return DB::table('categories')
             ->join('users', 'categories.created_by', '=', 'users.id')
             ->join('modules', 'categories.status', '=', 'modules.id')
-            ->select('categories.name', 'users.name as created', 'modules.module_name as status');
+            ->select('categories.name', 'users.name as created', 'modules.module_name as status', 'categories.id')
+            ->addSelect(DB::raw('(SELECT GROUP_CONCAT(modules.module_name SEPARATOR ", ") FROM categories_has_slot
+                                JOIN modules ON categories_has_slot.slot_id = modules.id
+                                WHERE categories_has_slot.category_id = categories.id) as slots'));
     }
 
     protected function subCategoriesCommonQuery()

@@ -37,7 +37,7 @@ class CategoryController extends Controller
             $data = $this->categoriesCommonQuery()->get();
             return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
         }
-        $data = $this->categoriesCommonQuery()->paginate(8);
+        $data = $this->categoriesCommonQuery()->paginate(10);
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 
@@ -83,7 +83,8 @@ class CategoryController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $data = $this->categoriesCommonQuery()->where('categories.id', $id)->get();
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 
     /**
@@ -95,16 +96,18 @@ class CategoryController extends Controller
         $validator = Validator::make($request->all(), $this->categoryUpdateValidator());
         // If validator fails it will #returns
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
-        // Modules #active
-        $modules = $this->getModuleIdBasedOnCode($request->status);
         // Update category
-        $category = Categories::where('id', $id)->first();
-        $category->name = $request->name;
-        $category->description = $request->description;
-        $category->status = $modules;
-        $category->updated_by = $auth;
-        $category->save();
-        return $this->successResponse(true, $category, $this->constant::CATEGORY_UPDATED);
+        DB::transaction(function () use ($request, $auth, $id) {
+            $category = Categories::where('id', $id)->first();
+            $category->name = $request->name;
+            $category->status = $request->status;
+            $category->save();
+            CategoryHasSlot::where('category_id', $id)->delete();
+            foreach ($request->slot as $data) {
+                CategoryHasSlot::create(["category_id" => $category->id, "slot_id" => $data]);
+            }
+        });
+        return $this->successResponse(true, "", $this->constant::CATEGORY_UPDATED);
     }
 
     /**

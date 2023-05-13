@@ -58,6 +58,11 @@ class AuthController extends Controller
      */
     public function adminLogin(Request $request)
     {
+        $validator = Validator::make($request->all(), $this->adminLoginVerify());
+
+        // If validator fails it will #returns
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+
         $crendentials = $request->only('email', 'password');
         $token = auth()->attempt($crendentials);
 

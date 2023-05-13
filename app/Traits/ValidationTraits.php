@@ -15,6 +15,17 @@ trait ValidationTraits
     }
 
     /**
+     * @admin login verify
+     */
+    protected function adminLoginVerify(): array
+    {
+        return [
+            'email'     => 'required',
+            'password'  => 'required'
+        ];
+    }
+
+    /**
      * @admin signup validator
      */
     protected function adminSignUpValidator(): array
@@ -94,7 +105,7 @@ trait ValidationTraits
     {
         return [
             'name'          => 'required|max:30',
-            'description'   => 'max:250',
+            'slot'          => 'required',
         ];
     }
 
@@ -110,7 +121,7 @@ trait ValidationTraits
     {
         return [
             'name'          => 'required|max:30',
-            'description'   => 'max:250',
+            'slot'          => 'required',
             'status'        => 'required'
         ];
     }
