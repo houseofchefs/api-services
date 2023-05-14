@@ -35,10 +35,10 @@ class MenuController extends Controller
     /**
      * @menu list for admin
      */
-    public function menuListForAdmin()
+    public function menuListForAdmin(Request $request)
     {
         # code...
-        $data = $this->menuListQuery()->paginate(10);
+        $data = $this->menuListQuery($request->id)->paginate(10);
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 
@@ -157,5 +157,12 @@ class MenuController extends Controller
             ->where('wishlists.customer_id', '=', $id)
             ->paginate(10);
         return $wishlist;
+    }
+
+    public function menuDetail(String $id)
+    {
+        # code...
+        $data = $this->menuListQuery()->where('id', $id)->first();
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 }

@@ -15,6 +15,7 @@ use App\Models\Customers;
 use App\Models\Payment;
 use App\Models\Riders;
 use App\Models\User;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -31,9 +32,6 @@ class DetailsController extends Controller
     {
         $this->constant = new Constants();
         $this->http = new HTTPStatusCode();
-        // $this->middleware(['jwt.auth:customers', 'jwt.auth:cooks', 'jwt.auth:riders'], ['only' => ['address', 'updateAddress', 'bank', 'updateBank']]);
-        // $this->middleware(['jwt.auth:customers'], ['only' => ['payment']]);
-        // $this->middleware(['auth:users'], ['only' => ['paymentList']]);
     }
 
     #### Method's are started
@@ -156,5 +154,28 @@ class DetailsController extends Controller
             $user->save();
         }
         return $this->successResponse(true, "", $this->constant::UPDATED_SUCCESS);
+    }
+
+    public function getLocation(Request $request)
+    {
+        # Code...
+        $client = new Client();
+        $place = $request->place;
+        $key = env('GOOGLE_MAPS_API_KEY');
+        $url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=" . $place . "&components=country:IN&key=" . $key;
+        $response = $client->get($url);
+        $data = json_decode($response->getBody());
+        return response()->json($data);
+    }
+
+    public function getLatLng(Request $request)
+    {
+        $client = new Client();
+        $place = $request->place_id;
+        $key = env('GOOGLE_MAPS_API_KEY');
+        $url = "https://maps.googleapis.com/maps/api/geocode/json?place_id=".$place."&key=" . $key;
+        $response = $client->get($url);
+        $data = json_decode($response->getBody());
+        return response()->json($data);
     }
 }

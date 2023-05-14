@@ -34,4 +34,12 @@ class VendorController extends Controller
         $data = Vendor::with('status')->where('status', $status)->paginate(10);
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
+
+    public function edit(String $id)
+    {
+        # code...
+        $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $data = Vendor::with(['status', 'address', 'bank.type'])->where('status', $status)->where('id', $id)->first();
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+    }
 }

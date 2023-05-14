@@ -33,7 +33,7 @@ class CartController extends Controller
      */
     public function index()
     {
-        $cart = Cart::with(['menu', 'user', 'cook'])->paginate();
+        $cart = Cart::with(['menu', 'user', 'vendor'])->paginate(10);
         return $this->successResponse(true, $cart, $this->constant::GET_SUCCESS, $this->http::OK);
     }
 

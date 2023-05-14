@@ -62,7 +62,7 @@ class CategoryController extends Controller
         $modules = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
         // Create category
         DB::transaction(function () use ($request, $modules, $id) {
-            $category = Categories::create(array_merge($request->only(['name']), array('status' => $modules, 'created_by' => $id, 'updated_by' => $id)));
+            $category = Categories::create(array_merge($request->only(['name','image']), array('status' => $modules, 'created_by' => $id, 'updated_by' => $id)));
             foreach ($request->slot as $data) {
                 CategoryHasSlot::create(["category_id" => $category->id, "slot_id" => $data]);
             }

@@ -39,4 +39,20 @@ class Vendor extends Model
     {
         return $this->belongsTo(Modules::class, 'status');
     }
+
+    /**
+     * @return BelongsTo
+     */
+    public function address(): BelongsTo
+    {
+        return $this->belongsTo(Address::class, 'address_id');
+    }
+
+    /**
+     * @return BelongsTo
+     */
+    public function bank(): BelongsTo
+    {
+        return $this->belongsTo(Bank::class, 'bank_id');
+    }
 }

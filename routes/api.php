@@ -119,6 +119,9 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('/address/{id}/{guard}', 'customerAddressList');
             #set Active Address
             Route::put('/set-active/address/{address}', 'setActiveAddress');
+            #Get Location
+            Route::get("/get-location", "getLocation");
+            Route::get("/lat-lng", "getLatLng");
         });
 
         Route::resource("discount", DiscountController::class)->except(['create', 'edit']);
@@ -151,6 +154,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
         });
         Route::prefix('vendor')->controller(VendorController::class)->group(function () {
             Route::get('list', 'index');
+            Route::get('edit/{id}', 'edit');
         });
     });
 });

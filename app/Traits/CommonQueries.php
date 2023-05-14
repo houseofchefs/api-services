@@ -87,7 +87,7 @@ trait CommonQueries
         return DB::table('categories')
             ->join('users', 'categories.created_by', '=', 'users.id')
             ->join('modules', 'categories.status', '=', 'modules.id')
-            ->select('categories.name', 'users.name as created', 'modules.module_name as status', 'categories.id')
+            ->select('categories.name', 'users.name as created', 'modules.module_name as status', 'categories.id', 'categories.image')
             ->addSelect(DB::raw('(SELECT GROUP_CONCAT(modules.module_name SEPARATOR ", ") FROM categories_has_slot
                                 JOIN modules ON categories_has_slot.slot_id = modules.id
                                 WHERE categories_has_slot.category_id = categories.id) as slots'));
@@ -104,29 +104,22 @@ trait CommonQueries
 
     protected function menuListQuery($id = null)
     {
-        return DB::table('menu')
-            ->join('modules as m1', 'menu.status', '=', 'm1.id')
-            ->join('modules as m2', 'menu.type', '=', 'm2.id')
-            ->join('cooks', 'menu.created_by', '=', 'cooks.id')
-            ->leftJoin('ingredients', 'menu.id', '=', 'ingredients.menu_id')
-            ->leftJoin('categories', 'menu.category_id', '=', 'categories.id')
-            ->leftJoin('sub_categories', 'menu.sub_category_id', '=', 'sub_categories.id')
+        return DB::table('menus')
+            ->join('modules as m1', 'menus.status', '=', 'm1.id')
+            ->join('modules as m2', 'menus.type', '=', 'm2.id')
+            ->leftJoin('categories', 'menus.category_id', '=', 'categories.id')
             ->select(
-                'menu.id as id',
-                'menu.name as name',
-                'menu.menu_image as image',
-                'menu.price',
+                'menus.id as id',
+                'menus.name as name',
+                'menus.image as image',
+                'menus.description as description',
+                'menus.price',
                 'm1.module_name as status',
-                'm2.module_name as food_type',
-                'cooks.name as created',
-                'categories.name as category',
-                'sub_categories.name as sub_category'
+                'm2.module_name as food_type'
             )
             ->when($id != null, function ($subQ, $id) {
-                $subQ->where('menu.created_by', $id);
-            })
-            ->groupBy('menu.id')
-            ->selectRaw('JSON_ARRAYAGG(JSON_OBJECT("name", ingredients.name,"calories", ingredients.calories,"fat", ingredients.fat,"carbohydrates", ingredients.carbohydrates, "protein", ingredients.protein)) as ingredients_array');
+                $subQ->where('menus.created_by', $id);
+            });
     }
 
     protected function slotBasedMenus($lat, $long, $rad, $slot, $status)
@@ -138,7 +131,7 @@ trait CommonQueries
         $customerId = auth('customer')->user()->id;
 
         return DB::table('vendors')
-            ->selectRaw('menus.id as id,menus.name as name,menus.isDaily as isDaily,vendors.name as vendorName,categories.name as categoryName,menus.rating as rating, menus.ucount as ratingCount,menus.image as image,vendors.latitude as latitude,vendors.longitude as longitude,IF(wishlists.id IS NULL, false, true) AS wishlist,modules.module_name as type, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
+            ->selectRaw('menus.id as id,vendors.id as vendor_id,menus.description as description,menus.name as name,menus.isDaily as isDaily,vendors.name as vendorName,categories.name as categoryName,menus.rating as rating, menus.ucount as ratingCount,menus.image as image,vendors.latitude as latitude,vendors.longitude as longitude,IF(wishlists.id IS NULL, false, true) AS wishlist,modules.module_name as type, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
             ->join('menus', 'menus.vendor_id', '=', 'vendors.id')
             ->join('categories', 'categories.id', '=', 'menus.category_id')
             ->join('categories_has_slot', 'categories_has_slot.category_id', '=', 'menus.category_id')

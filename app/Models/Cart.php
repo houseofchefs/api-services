@@ -38,8 +38,8 @@ class Cart extends Model
     /**
      * @return BelongsTo
      */
-    public function cook(): BelongsTo
+    public function vendor(): BelongsTo
     {
-        return $this->belongsTo(Cook::class, 'cook_id', 'id');
+        return $this->belongsTo(Vendor::class, 'vendor_id', 'id');
     }
 }

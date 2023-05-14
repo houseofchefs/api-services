@@ -90,5 +90,5 @@ final class Constants
     const PAYMENT_METHOD_DC = "PM03";
     const PAYMENT_METHOD_CASH = "PM04";
     # Radius
-    const RADIUS = "MT10";
+    const RADIUS = "MT11";
 }

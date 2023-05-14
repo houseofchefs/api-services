@@ -105,6 +105,7 @@ trait ValidationTraits
     {
         return [
             'name'          => 'required|max:30',
+            'image'         => 'required',
             'slot'          => 'required',
         ];
     }
@@ -249,7 +250,6 @@ trait ValidationTraits
             'mobile'            => 'required|unique:vendors,mobile',
             'email'             => 'required|unique:vendors,email',
             'door_no'           => 'required',
-            'pincode'           => 'required',
             'account_number'    => 'required|max:16',
             'account_type'      => 'required',
             'bank_name'         => 'required',
