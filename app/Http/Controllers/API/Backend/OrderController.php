@@ -7,10 +7,12 @@ use App\Constants\HTTPStatusCode;
 use App\Http\Controllers\Controller;
 use App\Models\OrderDetails;
 use App\Models\Orders;
+use App\Models\Payment;
 use App\Traits\CommonQueries;
 use App\Traits\ResponseTraits;
 use App\Traits\ValidationTraits;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
@@ -46,6 +48,7 @@ class OrderController extends Controller
             $request->except('product_id'),
             array(
                 "status"        => $module,
+                "item_count"    => count($request->get('product_id')),
                 "order_no"      => "HOC0000" . $count + 1,
                 "customer_id"   => auth($this->constant::CUSTOMER_GUARD)->user()->id
             )
@@ -60,6 +63,8 @@ class OrderController extends Controller
                 OrderDetails::create($details);
             }
         }
+        $payment = $this->getModuleIdBasedOnCode("PS01");
+        Payment::create(["payment_method" => $request->payment_method, "payment_status" => $payment,'order_id' => $order->id,'amount' => $request->price]);
         return $this->successResponse(true, $order, $this->constant::ORDER_CREATED, $this->http::CREATED);
     }
 
@@ -86,7 +91,14 @@ class OrderController extends Controller
     public function orderListForCustomer()
     {
         # code...
-        $order = Orders::with(['details.menu', 'status'])->where('customer_id', auth($this->constant::CUSTOMER_GUARD)->user()->id)->paginate();
+        $auth = auth($this->constant::CUSTOMER_GUARD)->user()->id;
+        $order = Orders::where('id', $auth)->with(['status','payments.method','payments.status','details.menu','vendor'])->paginate(10);
         return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
+    }
+
+    public function orderCancel(String $id) {
+        $modules = $this->getModuleIdBasedOnCode('OS03');
+        $order = Orders::where('id', $id)->update(['status' => $modules]);
+        return $this->successResponse(true, $order, $this->constant::UPDATED_SUCCESS);
     }
 }

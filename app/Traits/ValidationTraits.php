@@ -65,7 +65,7 @@ trait ValidationTraits
     protected function customerOtpValidator(): array
     {
         return [
-            'mobile' => 'required|min:8|max:16|exists:customers'
+            'mobile' => 'required|min:8|max:16'
         ];
     }
 
@@ -96,8 +96,10 @@ trait ValidationTraits
     protected function customerSignupValidator(): array
     {
         return [
-            'mobile'    => 'required|min:8|max:16|unique:customers',
-            "name"      => 'required|max:30'
+            'mobile'    => 'required|min:8|max:16',
+            "name"      => 'required|max:30',
+            "dob"       => "required|date",
+            "email"     => "required|email",
         ];
     }
 
@@ -164,6 +166,7 @@ trait ValidationTraits
             "address_id"    => 'required_unless:latitude,""',
             "longtitude"    => 'required_without:address_id',
             "latitude"      => 'required_without:address_id',
+            "payment_method"=> 'required'
         ];
     }
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -16,6 +17,7 @@ class Customers extends Authenticatable implements JWTSubject
     protected $fillable = [
         'name',
         'email',
+        'dob',
         'mobile',
         'password',
         'address_id',
@@ -61,5 +63,10 @@ class Customers extends Authenticatable implements JWTSubject
     public function setPasswordAttribute($password)
     {
         $this->attributes['password'] = bcrypt($password);
+    }
+
+    public function address(): BelongsTo
+    {
+        return $this->belongsTo(Address::class, 'address_id', 'id');
     }
 }

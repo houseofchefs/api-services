@@ -23,6 +23,7 @@ class Orders extends Model
         'customer_id',
         'address_id',
         'rider_id',
+        'item_count',
         'price',
         'discount',
         'coupon',
@@ -30,6 +31,7 @@ class Orders extends Model
         'rider_picked_at',
         'cook_deliver_at',
         'rider_deliver_at',
+        'instructions',
         'latitude',
         'longtitude',
         'status',
@@ -50,5 +52,15 @@ class Orders extends Model
     public function status(): BelongsTo
     {
         return $this->belongsTo(Modules::class, 'status');
+    }
+
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class, 'vendor_id');
+    }
+
+    public function payments(): HasOne
+    {
+        return $this->hasOne(Payment::class, 'order_id', 'id');
     }
 }

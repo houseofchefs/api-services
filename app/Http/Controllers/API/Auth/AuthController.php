@@ -45,7 +45,7 @@ class AuthController extends Controller
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
 
         // Create Admin User
-        $user = User::create(array_merge($request->only([$this->constant::NAME, $this->constant::MOBILE , $this->constant::PASSWORD, $this->constant::EMAIL])));
+        $user = User::create(array_merge($request->only([$this->constant::NAME, $this->constant::MOBILE, $this->constant::PASSWORD, $this->constant::EMAIL])));
 
         // assign the role to the created user #roles
         $user->assignRole($request->role);
@@ -203,22 +203,10 @@ class AuthController extends Controller
         // If validator fails it will #returns
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
 
-        //Modules #id
-        $module = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
-
-        // Create Cook User
-        $user = Customers::create(array_merge(
-            $request->only([$this->constant::NAME, $this->constant::MOBILE]),
-            array(
-                $this->constant::PASSWORD => env($this->constant::CUSTOMER_PASSWORD),
-                $this->constant::STATUS => $module,
-                'referral_code' => $this->generateRandomString(),
-                'signup_with'   => $request->get('referral')
-            )
-        ));
-
-        // assign the role to the created user #roles
-        $user->assignRole($this->constant::CUSTOMER_ROLE);
+        $user = Customers::where('mobile', $request->mobile)->update(array_merge($request->only(['name', 'dob', 'email']), [
+            'referral_code' => $this->generateRandomString(),
+            'signup_with'   => $request->get('referral')
+        ]));
 
         // Referral Points add #section
         if ($request->get('referral') != '') {
@@ -228,10 +216,7 @@ class AuthController extends Controller
                 $refer->save();
             }
         }
-
-        // send otp common function
-        $this->sendOtp($request->get($this->constant::MOBILE), $this->constant::CUSTOMER_GUARD);
-        return $this->successResponse(true, "", $this->constant::OTP_SENT_SUCCESS, 200);
+        return $this->successResponse(true, "", $this->constant::UPDATED_SUCCESS, 200);
     }
 
     /**
@@ -244,8 +229,18 @@ class AuthController extends Controller
 
         // If validator fails it will #returns
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
-        if ($this->existingOtp($request->get($this->constant::MOBILE), $this->constant::CUSTOMER_GUARD)) return $this->errorResponse(false, "", $this->constant::OTP_ALREADY_SENT, $this->http::UNPROCESS_ENTITY_CODE);
 
+        $user = Customers::where('mobile', $request->mobile)->first();
+        //Modules #id
+        $module = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+
+        if ($user) {
+            if ($this->existingOtp($request->get($this->constant::MOBILE), $this->constant::CUSTOMER_GUARD)) return $this->errorResponse(false, "", $this->constant::OTP_ALREADY_SENT, $this->http::UNPROCESS_ENTITY_CODE);
+        } else {
+            $user = Customers::create(['mobile' => $request->mobile, $this->constant::PASSWORD => env($this->constant::CUSTOMER_PASSWORD), 'status' => $module]);
+            // assign the role to the created user #roles
+            $user->assignRole($this->constant::CUSTOMER_ROLE);
+        }
         // send otp common function
         $this->sendOtp($request->get($this->constant::MOBILE), $this->constant::CUSTOMER_GUARD);
         return $this->successResponse(true, "", $this->constant::OTP_SENT_SUCCESS, 200);
@@ -267,7 +262,7 @@ class AuthController extends Controller
             if (!$token) return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
 
             // Logged User Details Framing
-            $user = Customers::role($this->constant::CUSTOMER_ROLE)->with('roles')->where('mobile', $request->get($this->constant::MOBILE))->first();
+            $user = Customers::role($this->constant::CUSTOMER_ROLE)->with(['roles','address'])->where('mobile', $request->get($this->constant::MOBILE))->first();
             if ($user) return $this->tokenResponse(true, $user, $token, $this->constant::LOGIN_SUCCESS, 200);
             else {
                 auth()->logout();

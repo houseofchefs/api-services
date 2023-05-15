@@ -96,6 +96,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
                 Route::post('order', 'createOrder');
                 Route::get('order/{id}', 'orderDetails');
                 Route::get('orders/list', 'orderListForCustomer');
+                Route::get('order/cancel/{id}','orderCancel');
             });
             #admin accessible route's
             Route::prefix('admin')->group(function () {
