@@ -13,6 +13,7 @@ use App\Http\Controllers\API\Backend\NearByController;
 use App\Http\Controllers\API\Backend\OrderController;
 use App\Http\Controllers\API\Backend\PreBookingController;
 use App\Http\Controllers\API\Backend\ProductController;
+use App\Http\Controllers\API\Backend\StaffController;
 use App\Http\Controllers\API\Backend\SubCategoryController;
 use App\Http\Controllers\API\Backend\VendorController;
 use Illuminate\Support\Facades\Route;
@@ -68,6 +69,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
         });
         ## Menu Route's
         Route::prefix('menu')->controller(MenuController::class)->group(function () {
+            Route::get('detail/{id}', 'menuDetails');
             ## Cook Accessible Route's
             Route::prefix('cook')->group(function () {
                 Route::get('list', 'menuListForCook');
@@ -87,6 +89,14 @@ Route::prefix('v1')->middleware('api')->group(function () {
                 Route::post('create', 'createWishlist');
                 Route::get('list', 'getWishListMenu');
             });
+            ## Vendor Based List
+            Route::prefix('vendor')->group(function () {
+                Route::get('list/{id}', 'vendorBasedMenuList');
+            });
+            ## Ingrediants
+            Route::prefix('ingrediants')->group(function () {
+                Route::get('dropdown', 'ingradiantsDropDown');
+            });
         });
 
         ## Order Route's
@@ -96,12 +106,17 @@ Route::prefix('v1')->middleware('api')->group(function () {
                 Route::post('order', 'createOrder');
                 Route::get('order/{id}', 'orderDetails');
                 Route::get('orders/list', 'orderListForCustomer');
-                Route::get('order/cancel/{id}','orderCancel');
+                Route::get('order/cancel/{id}', 'orderCancel');
+                Route::get('orders/list/{code}', 'customerBasedOrderList');
             });
             #admin accessible route's
             Route::prefix('admin')->group(function () {
                 Route::get('order', 'orderList');
                 Route::get('order/{id}', 'orderDetails');
+            });
+            ## Vendor
+            Route::prefix('vendor')->group(function () {
+                Route::get('order/{id}/{code}', 'vendorBasedOrderList');
             });
         });
 
@@ -130,20 +145,14 @@ Route::prefix('v1')->middleware('api')->group(function () {
         Route::resource("categories", CategoryController::class)->only(['index', 'store', 'update', 'edit']);
         // Route::resource("sub-category", SubCategoryController::class)->only(['index', 'store', 'update'])->middleware('role:super-admin|admin');
         Route::resource('module', ModuleController::class)->only(['index', 'show']);
-        Route::resource('cook', CookController::class)->only(['index', 'show']);
+        // Route::resource('cook', CookController::class)->only(['index', 'show']);
         Route::resource('product', ProductController::class);
+        Route::prefix('product')->controller(ProductController::class)->group(function () {
+            Route::get('vendor/{id}', 'vendorBasedProduct');
+        });
         Route::prefix('pre-book')->controller(PreBookingController::class)->group(function () {
             Route::post('create', 'store');
         });
-        // Route::controller(HomeController::class)->group(function () {
-        //     Route::get('/special-offer', 'discountList');
-        //     Route::get('/slot/menu', 'slotBasedMenuItemsList');
-        //     Route::get('/slot/category/menu', 'slotAndCategoryMenuItemsList');
-        //     Route::get('/near/vendors', 'vendorList');
-        //     Route::get('/near/product', 'productList');
-        //     Route::get('/near/pre-booking', 'preBookingList');
-        //     Route::get('/todays-offer', 'todaysOffer');
-        // });
         Route::get("available/discount", [DiscountController::class, 'discountList']);
         Route::prefix('near-by')->controller(NearByController::class)->group(function () {
             Route::get('/pre-booking', 'preBookingList');
@@ -156,6 +165,12 @@ Route::prefix('v1')->middleware('api')->group(function () {
         Route::prefix('vendor')->controller(VendorController::class)->group(function () {
             Route::get('list', 'index');
             Route::get('edit/{id}', 'edit');
+            Route::get('/dropdown', 'dropdownVendor');
+        });
+        Route::prefix('staff')->controller(StaffController::class)->group(function () {
+            Route::get('vendor-based/list/{id}', 'index');
+            Route::get('active/{id}', 'active');
+            Route::get('inactive/{id}', 'inactive');
         });
     });
 });

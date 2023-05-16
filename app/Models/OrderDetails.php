@@ -18,6 +18,7 @@ class OrderDetails extends Model
     protected $fillable = [
         'order_id',
         'menu_id',
+        'quantity',
         'feedback',
         'ratings'
     ];

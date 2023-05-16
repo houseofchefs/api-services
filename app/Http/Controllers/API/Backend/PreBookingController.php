@@ -41,7 +41,7 @@ class PreBookingController extends Controller
             $booking = PreBooking::create(array_merge($request->only(['booking_date', 'address_id', 'price', 'items', 'latitude', 'longitude']), array('customer_id' => $id)));
             if (count($request->menus) > 0) {
                 foreach ($request->menus as $menu) {
-                    PreBookingDetail::create(["menu_id" => $menu, "booking_id" => $booking->id]);
+                    PreBookingDetail::create(["menu_id" => $menu['menu_id'], "quantity" => $menu['quantity'], "booking_id" => $booking->id]);
                 }
             }
         });

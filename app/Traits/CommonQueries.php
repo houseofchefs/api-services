@@ -104,18 +104,27 @@ trait CommonQueries
 
     protected function menuListQuery($id = null)
     {
+        $customerId = auth('customer')->user()->id;
         return DB::table('menus')
             ->join('modules as m1', 'menus.status', '=', 'm1.id')
             ->join('modules as m2', 'menus.type', '=', 'm2.id')
             ->leftJoin('categories', 'menus.category_id', '=', 'categories.id')
-            ->select(
-                'menus.id as id',
-                'menus.name as name',
-                'menus.image as image',
-                'menus.description as description',
-                'menus.price',
-                'm1.module_name as status',
-                'm2.module_name as food_type'
+            ->leftJoin('wishlists', function ($join) use ($customerId) {
+                $join->on('wishlists.menu_id', '=', 'menus.id')
+                    ->where('wishlists.customer_id', '=', $customerId)
+                    ->where('wishlists.type', '=', 'menu');
+            })
+            ->selectRaw(
+                'menus.id as id,
+                menus.rating as rating,
+                menus.name as name,
+                menus.image as image,
+                menus.description as description,
+                menus.price,
+                m1.module_name as status,
+                m2.module_name as food_type,
+                menus.isApproved as approved,
+                IF(wishlists.id IS NULL, false, true) AS wishlist'
             )
             ->when($id != null, function ($subQ, $id) {
                 $subQ->where('menus.created_by', $id);

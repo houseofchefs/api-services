@@ -35,7 +35,28 @@ class DiscountController extends Controller
     public function index()
     {
         $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
-        $discount = Discount::with(['status', 'createdBy', 'type'])->where([['status', $status], ['expire_at', '>', Carbon::now()]])->paginate();
+        $discount = DB::table('discounts')
+            ->where([
+                ['discounts.status', $status],
+                ['discounts.expire_at', '>', Carbon::now()]
+            ])
+            ->join('modules as mstatus', 'discounts.status', '=', 'mstatus.id')
+            ->join('modules as mtype', 'discounts.type', '=', 'mtype.id')
+            ->join('vendors', 'discounts.vendor_id', '=', 'vendors.id')
+            ->join('categories', 'discounts.category_id', '=', 'categories.id')
+            ->join('users', 'discounts.created_by', '=', 'users.id')
+            ->select(
+                'discounts.id as id',
+                'discounts.name',
+                'vendors.name as vendor_name',
+                'mtype.module_name as type',
+                'categories.name as category',
+                'discounts.percentage as percentage',
+                'discounts.expire_at as expireAt'
+            )
+            ->paginate(10);
+
+
         return $this->successResponse(true, $discount, $this->constant::GET_SUCCESS, $this->http::OK);
     }
 

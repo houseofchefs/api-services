@@ -272,7 +272,8 @@ trait ValidationTraits
             "name"      => 'required|max:30',
             "email"     => 'required|email|unique:staff',
             "password"  => 'required',
-            "vendor_id" => 'required'
+            "vendor_id" => 'required',
+            "role"      => 'required'
         ];
     }
 

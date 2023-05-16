@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Traits\ResponseTraits;
 use App\Traits\ValidationTraits;
 use App\Traits\CommonQueries;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
@@ -113,5 +114,11 @@ class ProductController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function vendorBasedProduct($id) {
+        $modules = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $data = DB::table('products')->where('vendor_id', $id)->where('status', $modules)->orderBy('id','desc')->paginate(12);
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 }

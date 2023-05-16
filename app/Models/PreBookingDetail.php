@@ -11,6 +11,7 @@ class PreBookingDetail extends Model
 
     protected $fillable = [
         'menu_id',
+        "quantity",
         'booking_id'
     ];
 

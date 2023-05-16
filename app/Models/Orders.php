@@ -63,4 +63,14 @@ class Orders extends Model
     {
         return $this->hasOne(Payment::class, 'order_id', 'id');
     }
+
+    public function customers(): BelongsTo
+    {
+        return $this->belongsTo(Customers::class, 'customer_id', 'id');
+    }
+
+    public function address(): BelongsTo
+    {
+        return $this->belongsTo(Address::class, 'address_id', 'id');
+    }
 }

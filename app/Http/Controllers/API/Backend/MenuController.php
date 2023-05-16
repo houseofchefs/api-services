@@ -120,7 +120,7 @@ class MenuController extends Controller
     public function menuListForCustomer()
     {
         $modules = $this->getModuleIdBasedOnCode($this->constant::MENU_APPROVED);
-        $data = Menu::where('status', $modules)->with(['status', 'createdBy', 'ingredients'])->paginate();
+        $data = Menu::where('status', $modules)->with(['status', 'createdBy', 'ingredients'])->paginate(10);
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 
@@ -136,12 +136,13 @@ class MenuController extends Controller
 
         $id = auth($this->constant::CUSTOMER_GUARD)->user()->id;
         $wishlist = Wishlist::where('type', $request->type)->where('customer_id', $id)->where('menu_id', $request->menu_id)->exists();
-        if ($wishlist) {
+        if ($wishlist && !$request->flag) {
             Wishlist::where('type', $request->type)->where('customer_id', $id)->where('menu_id', $request->menu_id)->delete();
             return $this->successResponse(true, "", $this->constant::UPDATED_SUCCESS);
+        } else if (!$wishlist && $request->flag) {
+            Wishlist::create(array_merge($request->only(['menu_id', 'type']), array('customer_id' => $id)));
+            return $this->successResponse(true, "", $this->constant::CREATED_SUCCESS, $this->http::CREATED);
         }
-        Wishlist::create(array_merge($request->only(['menu_id', 'type']), array('customer_id' => $id)));
-        return $this->successResponse(true, "", $this->constant::CREATED_SUCCESS, $this->http::CREATED);
     }
 
     /**
@@ -163,6 +164,24 @@ class MenuController extends Controller
     {
         # code...
         $data = $this->menuListQuery()->where('id', $id)->first();
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+    }
+
+    public function vendorBasedMenuList($id)
+    {
+        $data = $this->menuListQuery()->where('vendor_id', $id)->orderBy("menus.id", 'desc')->paginate(12);
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+    }
+
+    public function ingradiantsDropDown()
+    {
+        $data = DB::table('ingredients')->select('id as value', 'name as label')->get();
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+    }
+
+    public function menuDetails($id)
+    {
+        $data = $this->menuListQuery()->where('menus.id', $id)->first();
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 }
