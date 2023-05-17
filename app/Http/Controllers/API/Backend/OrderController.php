@@ -90,7 +90,7 @@ class OrderController extends Controller
      */
     public function orderDetails(String $id)
     {
-        $order = Orders::with(['details.menu', 'status','address'])->where('id', $id)->first();
+        $order = Orders::with(['details.menu', 'status', 'address'])->where('id', $id)->first();
         return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
     }
 
@@ -116,10 +116,18 @@ class OrderController extends Controller
         return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
     }
 
-    public function customerBasedOrderList($code) {
+    public function customerBasedOrderList($code)
+    {
         $modules = $this->getModuleIdBasedOnCode($code);
         $id = auth($this->constant::CUSTOMER_GUARD)->user()->id;
         $order = Orders::with(['customers', 'payments.method', 'payments.status', 'details.menu', 'vendor', 'address', 'status'])->where('customer_id', $id)->where('status', $modules)->paginate(10);
         return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
+    }
+
+    public function nextAction($id, $code)
+    {
+        $modules = $this->getModuleIdBasedOnCode($code);
+        $order = Orders::where('id', $id)->update(['status' => $modules]);
+        return $this->successResponse(true, $order, $this->constant::UPDATED_SUCCESS);
     }
 }

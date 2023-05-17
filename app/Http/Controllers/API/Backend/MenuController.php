@@ -148,15 +148,30 @@ class MenuController extends Controller
     /**
      * wishlist menu
      */
-    public function getWishListMenu()
+    public function getWishListMenu(Request $request)
     {
         $id = auth($this->constant::CUSTOMER_GUARD)->user()->id;
-        $wishlist = DB::table('wishlists')
-            ->join('menus', 'menus.id', '=', 'wishlists.menu_id')
-            ->join('vendors', 'menus.vendor_id', '=', 'vendors.id')
-            ->select('menus.name as name', 'menus.description as description', 'menus.image as image', 'menus.price as price', 'menus.rating as rating', 'menus.ucount as ratingCount', 'vendors.name as vendorName')
-            ->where('wishlists.customer_id', '=', $id)
-            ->paginate(10);
+        if ($request->type == "menu") {
+            $wishlist = DB::table('wishlists')
+                ->join('menus', 'menus.id', '=', 'wishlists.menu_id')
+                ->join('vendors', 'menus.vendor_id', '=', 'vendors.id')
+                ->select('menus.id as menu_id', 'menus.name as name', 'menus.description as description', 'menus.image as image', 'menus.price as price', 'menus.rating as rating', 'menus.ucount as ratingCount', 'vendors.name as vendorName')
+                ->where('wishlists.customer_id', '=', $id)
+                ->paginate(10);
+        } elseif ($request->type == "product") {
+            $wishlist = DB::table('wishlists')
+                ->join('products', 'products.id', '=', 'wishlists.menu_id')
+                ->join('vendors', 'products.vendor_id', '=', 'vendors.id')
+                ->select('products.id as menu_id', 'products.name as name', 'products.description as description', 'products.image as image', 'products.price as price', 'products.rating as rating', 'products.ucount as ratingCount', 'vendors.name as vendorName')
+                ->where('wishlists.customer_id', '=', $id)
+                ->paginate(10);
+        } elseif ($request->type == "vendor") {
+            $wishlist = DB::table('wishlists')
+                ->join('vendors', 'vendors.id', '=', 'wishlists.menu_id')
+                ->select('vendors.id as menu_id', 'vendors.name as name',  'vendors.rating as rating', 'vendors.ucount as ratingCount')
+                ->where('wishlists.customer_id', '=', $id)
+                ->paginate(10);
+        }
         return $wishlist;
     }
 
@@ -169,7 +184,21 @@ class MenuController extends Controller
 
     public function vendorBasedMenuList($id)
     {
-        $data = $this->menuListQuery()->where('vendor_id', $id)->orderBy("menus.id", 'desc')->paginate(12);
+        $data = DB::table('menus')
+            ->join('modules as m1', 'menus.status', '=', 'm1.id')
+            ->join('modules as m2', 'menus.type', '=', 'm2.id')
+            ->leftJoin('categories', 'menus.category_id', '=', 'categories.id')
+            ->selectRaw(
+                'menus.id as id,
+            menus.rating as rating,
+            menus.name as name,
+            menus.image as image,
+            menus.description as description,
+            menus.price,
+            m1.module_name as status,
+            m2.module_name as food_type,
+            menus.isApproved as approved'
+            )->where('vendor_id', $id)->orderBy("menus.id", 'desc')->paginate(12);
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 

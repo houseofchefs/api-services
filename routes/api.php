@@ -113,6 +113,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::prefix('admin')->group(function () {
                 Route::get('order', 'orderList');
                 Route::get('order/{id}', 'orderDetails');
+                Route::get('order/next-action/{id}/{code}', 'nextAction');
             });
             ## Vendor
             Route::prefix('vendor')->group(function () {
