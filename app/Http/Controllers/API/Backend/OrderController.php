@@ -44,18 +44,18 @@ class OrderController extends Controller
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
         //Modules #id
         $module = $this->getModuleIdBasedOnCode($this->constant::ORDER_SUCCESS);
-        $order = null;
-        DB::transaction(function () use ($module, $request) {
-            $count = Orders::count();
-            $order = Orders::create(array_merge(
-                $request->except('product_id'),
-                array(
-                    "status"        => $module,
-                    "item_count"    => count($request->get('product_id')),
-                    "order_no"      => "HOC0000" . $count + 1,
-                    "customer_id"   => auth($this->constant::CUSTOMER_GUARD)->user()->id
-                )
-            ));
+        $count = Orders::count();
+        $order = Orders::create(array_merge(
+            $request->except('product_id'),
+            array(
+                "status"        => $module,
+                "item_count"    => count($request->get('product_id')),
+                "order_no"      => "HOC0000" . $count + 1,
+                "customer_id"   => auth($this->constant::CUSTOMER_GUARD)->user()->id
+            )
+        ));
+        DB::transaction(function () use ($order, $request) {
+
             // Order Details $store func
             if (count($request->get('product_id')) > 0) {
                 foreach ($request->get('product_id') as $menu) {
@@ -71,7 +71,8 @@ class OrderController extends Controller
             Payment::create(["payment_method" => $request->payment_method, "payment_status" => $payment, 'order_id' => $order->id, 'amount' => $request->price]);
         });
         $address = Address::where('id', $request->address_id)->first();
-        return $this->successResponse(true, $address, $this->constant::ORDER_CREATED, $this->http::CREATED);
+        $order['address'] = $address;
+        return $this->successResponse(true, $order, $this->constant::ORDER_CREATED, $this->http::CREATED);
     }
 
     /**
