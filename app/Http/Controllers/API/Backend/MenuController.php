@@ -197,6 +197,8 @@ class MenuController extends Controller
             menus.price,
             m1.module_name as status,
             m2.module_name as food_type,
+            categories.name as category,
+            categories.id as category_id,
             menus.isApproved as approved'
             )->where('vendor_id', $id)->orderBy("menus.id", 'desc')->paginate(12);
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);

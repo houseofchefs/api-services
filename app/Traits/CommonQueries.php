@@ -124,6 +124,8 @@ trait CommonQueries
                 m1.module_name as status,
                 m2.module_name as food_type,
                 menus.isApproved as approved,
+                categories.name as category,
+                categories.id as category_id,
                 IF(wishlists.id IS NULL, false, true) AS wishlist'
             )
             ->when($id != null, function ($subQ, $id) {

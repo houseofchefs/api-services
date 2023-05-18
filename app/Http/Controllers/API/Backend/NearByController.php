@@ -215,7 +215,7 @@ class NearByController extends Controller
 
         $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
         $data = DB::table('products')
-            ->selectRaw('vendors.id as vendor_id,products.description as description,products.name as name,products.price as price,products.image as image,vendors.name as vendor_name,products.units as units,vendors.latitude as latitude, vendors.longitude as longitude, vendors.rating as rating, vendors.ucount as count,IF(wishlists.id IS NULL, false, true) AS wishlist, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
+            ->selectRaw('vendors.id as vendor_id,products.description as description,products.name as name,products.id as id,products.price as price,products.image as image,vendors.name as vendor_name,products.units as units,vendors.latitude as latitude, vendors.longitude as longitude, vendors.rating as rating, vendors.ucount as count,IF(wishlists.id IS NULL, false, true) AS wishlist, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
             ->join('vendors', 'products.vendor_id', '=', 'vendors.id')
             ->where('products.status', $status)
             ->leftJoin('wishlists', function ($join) use ($customerId) {

@@ -232,7 +232,7 @@ trait ValidationTraits
         return [
             'menu_id'   => 'required',
             'quantity'  => 'required',
-            'cook_id'   => 'required'
+            'vendor_id'   => 'required'
         ];
     }
 
