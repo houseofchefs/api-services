@@ -44,4 +44,22 @@ class Menu extends Model
     {
         return $this->belongsTo(Categories::class, 'category_id');
     }
+
+    public function hasIngrediants(): HasMany
+    {
+        return $this->hasMany(MenuHasIngredient::class, 'menu_id', 'id');
+    }
+
+    public function available(): HasMany
+    {
+        return $this->hasMany(MenuAvailableDay::class, 'menu_id', 'id');
+    }
+
+    /**
+     * @return BelongsTo
+     */
+    public function type(): BelongsTo
+    {
+        return $this->belongsTo(Modules::class, 'type');
+    }
 }

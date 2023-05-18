@@ -33,7 +33,7 @@ class ProductController extends Controller
     public function index()
     {
         $modules = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
-        $data = Product::where('status', $modules)->paginate(10);
+        $data = Product::with('status')->where('status', $modules)->paginate(10);
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 
@@ -118,7 +118,7 @@ class ProductController extends Controller
 
     public function vendorBasedProduct($id) {
         $modules = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
-        $data = DB::table('products')->where('vendor_id', $id)->where('status', $modules)->orderBy('id','desc')->paginate(12);
+        $data = Product::with('status')->where('vendor_id', $id)->where('status', $modules)->orderBy('id','desc')->paginate(12);
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 }

@@ -195,6 +195,8 @@ class MenuController extends Controller
             menus.image as image,
             menus.description as description,
             menus.price,
+            menus.status as mstatus,
+            menus.min_quantity as min_quantity,
             m1.module_name as status,
             m2.module_name as food_type,
             categories.name as category,
@@ -214,5 +216,48 @@ class MenuController extends Controller
     {
         $data = $this->menuListQuery()->where('menus.id', $id)->first();
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+    }
+
+    public function separateMenuDetails($id)
+    {
+        $data = Menu::with(['status', 'available', 'category', 'hasIngrediants.ingrediants', 'type'])->where('id', $id)->first();
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+    }
+
+    public function updateMenu(Request $request, $id)
+    {
+        // $id = auth()->guard($this->constant::COOK_GUARD)->user()->id;
+        $validator = Validator::make($request->all(), $this->updateMenuValidator());
+
+        // If validator fails it will #returns
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+
+        // Food Type
+        $type = $this->getModuleIdBasedOnCode($request->type);
+
+
+        DB::transaction(function () use ($request, $type, $id) {
+            $data = Menu::where('id', $id)->first();
+            if ($data->count() > 0) {
+                $menu = Menu::where('id', $id)->update(array_merge($request->only(['name', 'category_id', 'vendor_id', 'price', 'isPreOrder', 'isDaily', 'image', 'description', 'min_quantity', 'status', 'isApproved']), array('type' => $type)));
+            }
+            MenuHasIngredient::where('menu_id', $id)->delete();
+            MenuAvailableDay::where('menu_id', $id)->delete();
+            if (count($request->ingredient_id) > 0) {
+                foreach ($request->ingredient_id as $ingredients) {
+                    MenuHasIngredient::create(["menu_id" => $id, "ingredient_id" => $ingredients]);
+                }
+            }
+
+            if ($request->isPreOrder && !$request->isDaily) {
+                if (count($request->days) > 0) {
+                    foreach ($request->days as $day) {
+                        MenuAvailableDay::create(["menu_id" => $id, "day" => $day]);
+                    }
+                }
+            }
+        });
+
+        return $this->successResponse(true, "", $this->constant::MENU_UPDATED, $this->http::OK);
     }
 }

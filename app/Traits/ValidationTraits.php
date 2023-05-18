@@ -135,7 +135,7 @@ trait ValidationTraits
     protected function menuValidator(): array
     {
         return [
-            'name'          => 'required|max:30',
+            'name'          => 'required|max:50',
             'type'          => 'required',
             'vendor_id'     => 'required',
             'category_id'   => 'required',
@@ -145,6 +145,26 @@ trait ValidationTraits
             'isPreOrder'    => 'required',
             'description'   => 'required',
             'min_quantity'  => 'required'
+        ];
+    }
+
+    /**
+     * @menu update body validation
+     */
+    protected function updateMenuValidator(): array
+    {
+        return [
+            'name'          => 'required|max:30',
+            'type'          => 'required',
+            'vendor_id'     => 'required',
+            'category_id'   => 'required',
+            'price'         => 'required',
+            'image'         => 'required',
+            'isDaily'       => 'required',
+            'isPreOrder'    => 'required',
+            'description'   => 'required',
+            'min_quantity'  => 'required',
+            'status'        => 'required'
         ];
     }
 

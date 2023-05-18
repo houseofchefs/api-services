@@ -70,6 +70,8 @@ Route::prefix('v1')->middleware('api')->group(function () {
         ## Menu Route's
         Route::prefix('menu')->controller(MenuController::class)->group(function () {
             Route::get('detail/{id}', 'menuDetails');
+            Route::get('separate-detail/{id}', 'separateMenuDetails');
+            Route::put('update/{id}', 'updateMenu');
             ## Cook Accessible Route's
             Route::prefix('cook')->group(function () {
                 Route::get('list', 'menuListForCook');
