@@ -109,6 +109,7 @@ trait ValidationTraits
             'name'          => 'required|max:30',
             'image'         => 'required',
             'slot'          => 'required',
+            'vendor_id'     => 'required'
         ];
     }
 

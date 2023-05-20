@@ -7,6 +7,7 @@ use App\Constants\HTTPStatusCode;
 use App\Http\Controllers\Controller;
 use App\Models\Categories;
 use App\Models\CategoryHasSlot;
+use App\Models\Vendor;
 use App\Traits\CommonQueries;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
@@ -62,7 +63,7 @@ class CategoryController extends Controller
         $modules = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
         // Create category
         DB::transaction(function () use ($request, $modules, $id) {
-            $category = Categories::create(array_merge($request->only(['name','image']), array('status' => $modules, 'created_by' => $id, 'updated_by' => $id)));
+            $category = Categories::create(array_merge($request->only(['name', 'image', 'vendor_id']), array('status' => $modules, 'created_by' => $id, 'updated_by' => $id)));
             foreach ($request->slot as $data) {
                 CategoryHasSlot::create(["category_id" => $category->id, "slot_id" => $data]);
             }
@@ -101,6 +102,7 @@ class CategoryController extends Controller
             $category = Categories::where('id', $id)->first();
             $category->name = $request->name;
             $category->status = $request->status;
+            $category->vendor_id = $request->vendor_id;
             $category->save();
             CategoryHasSlot::where('category_id', $id)->delete();
             foreach ($request->slot as $data) {
@@ -116,5 +118,10 @@ class CategoryController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function vendorDropDown() {
+        $data =  DB::table('vendors')->select('name as label', 'id as value')->get();
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 }

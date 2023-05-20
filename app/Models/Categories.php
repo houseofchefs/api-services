@@ -14,6 +14,7 @@ class Categories extends Model
         'name',
         'description',
         'image',
+        'vendor_id',
         'status',
         'created_by',
         'updated_by'

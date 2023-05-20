@@ -55,8 +55,15 @@ class CartController extends Controller
         // If validator fails it will #returns
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
 
+        $id = auth()->guard($this->constant::CUSTOMER_GUARD)->user()->id;
+        $exist = Cart::where('vendor_id', $request->vendor_id)->where('menu_id', $request->menu_id)->where('user_id', $id)->first();
+        if($exist) {
+            $exist->quantity += $request->quantity;
+            $exist->save();
+            return $this->successResponse(true, $exist, $this->constant::UPDATED_SUCCESS, $this->http::OK);
+        }
         // create cart
-        $cart = Cart::create(array_merge($request->all(), array('user_id' => auth()->guard($this->constant::CUSTOMER_GUARD)->user()->id)));
+        $cart = Cart::create(array_merge($request->all(), array('user_id' => $id)));
         return $this->successResponse(true, $cart, $this->constant::CREATED_SUCCESS, $this->http::CREATED);
     }
 
