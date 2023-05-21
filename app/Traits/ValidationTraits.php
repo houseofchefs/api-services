@@ -345,6 +345,7 @@ trait ValidationTraits
     protected function createPreBookingValidation(): array
     {
         return [
+            "vendor_id"     => 'required',
             "booking_date"  => 'required',
             "address_id"    => 'required',
             "price"         => 'required',

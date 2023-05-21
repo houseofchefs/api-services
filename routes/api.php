@@ -147,6 +147,8 @@ Route::prefix('v1')->middleware('api')->group(function () {
         Route::resource("cart", CartController::class)->except(['create', 'edit', 'show']);
         Route::prefix('category')->controller(CategoryController::class)->group(function () {
             Route::get('vendor', 'vendorDropDown');
+            Route::get('master', 'masterCategory');
+            Route::get('vendor-based/{id}', 'vendorBasedCategory');
         });
         Route::resource("categories", CategoryController::class)->only(['index', 'store', 'update', 'edit']);
         // Route::resource("sub-category", SubCategoryController::class)->only(['index', 'store', 'update'])->middleware('role:super-admin|admin');

@@ -16,6 +16,8 @@ class PreBooking extends Model
         "price",
         "items",
         "latitude",
-        "longitude"
+        "longitude",
+        "vendor_id",
+        "instructions"
     ];
 }

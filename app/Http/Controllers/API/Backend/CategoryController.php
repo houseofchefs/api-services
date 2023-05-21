@@ -7,6 +7,7 @@ use App\Constants\HTTPStatusCode;
 use App\Http\Controllers\Controller;
 use App\Models\Categories;
 use App\Models\CategoryHasSlot;
+use App\Models\Menu;
 use App\Models\Vendor;
 use App\Traits\CommonQueries;
 use Illuminate\Support\Facades\Validator;
@@ -120,8 +121,36 @@ class CategoryController extends Controller
         //
     }
 
-    public function vendorDropDown() {
+    public function vendorDropDown()
+    {
         $data =  DB::table('vendors')->select('name as label', 'id as value')->get();
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+    }
+
+    public function masterCategory()
+    {
+        # code...
+        $data =  DB::table('categories')
+            ->join('users', 'categories.created_by', '=', 'users.id')
+            ->join('modules', 'categories.status', '=', 'modules.id')
+            ->where('vendor_id', 0)
+            ->select('categories.name', 'users.name as created', 'modules.module_name as status', 'categories.id', 'categories.image', 'categories.vendor_id as vendor_id')
+            ->addSelect(DB::raw('(SELECT GROUP_CONCAT(modules.module_name SEPARATOR ", ") FROM categories_has_slot
+                                JOIN modules ON categories_has_slot.slot_id = modules.id
+                                WHERE categories_has_slot.category_id = categories.id) as slots'))->get();
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+    }
+
+    public function vendorBasedCategory($id)
+    {
+        # code...
+        $data = [];
+        $categoryIds = Menu::where('vendor_id', 1)
+            ->distinct()
+            ->pluck('category_id');
+        if (count($categoryIds) > 0) {
+            $data = $this->categoriesCommonQuery()->whereIn('categories.id', $categoryIds)->get();
+        }
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 }

@@ -38,7 +38,7 @@ class PreBookingController extends Controller
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
 
         DB::transaction(function () use ($request, $id) {
-            $booking = PreBooking::create(array_merge($request->only(['booking_date', 'address_id', 'price', 'items', 'latitude', 'longitude']), array('customer_id' => $id)));
+            $booking = PreBooking::create(array_merge($request->only(['booking_date', 'address_id', 'price', 'items', 'latitude', 'longitude', 'vendor_id', 'instructions']), array('customer_id' => $id)));
             if (count($request->menus) > 0) {
                 foreach ($request->menus as $menu) {
                     PreBookingDetail::create(["menu_id" => $menu['menu_id'], "quantity" => $menu['quantity'], "booking_id" => $booking->id]);
