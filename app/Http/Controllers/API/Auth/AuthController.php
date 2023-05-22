@@ -262,9 +262,14 @@ class AuthController extends Controller
             if (!$token) return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
 
             // Logged User Details Framing
-            $user = Customers::role($this->constant::CUSTOMER_ROLE)->with(['roles','address'])->where('mobile', $request->get($this->constant::MOBILE))->first();
-            if ($user) return $this->tokenResponse(true, $user, $token, $this->constant::LOGIN_SUCCESS, 200);
-            else {
+            $user = Customers::role($this->constant::CUSTOMER_ROLE)->with(['roles', 'address'])->where('mobile', $request->get($this->constant::MOBILE))->first();
+            if ($user) {
+                $user->fcm_token = $request->fcm_token;
+                $user->ip_address = $request->ip_address;
+                $user->device_name = $request->device_name;
+                $user->save();
+                return $this->tokenResponse(true, $user, $token, $this->constant::LOGIN_SUCCESS, 200);
+            } else {
                 auth()->logout();
                 return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
             }

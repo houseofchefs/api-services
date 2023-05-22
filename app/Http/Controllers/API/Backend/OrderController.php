@@ -12,6 +12,7 @@ use App\Models\Payment;
 use App\Traits\CommonQueries;
 use App\Traits\ResponseTraits;
 use App\Traits\ValidationTraits;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -67,11 +68,21 @@ class OrderController extends Controller
                     OrderDetails::create($details);
                 }
             }
-            $payment = $this->getModuleIdBasedOnCode("PS01");
-            Payment::create(["payment_method" => $request->payment_method, "payment_status" => $payment, 'order_id' => $order->id, 'amount' => $request->price]);
         });
+        $paymentStatus = $this->getModuleIdBasedOnCode('PS01');
+        $active = $this->getModuleIdBasedOnCode('CS01');
+        $paymentData = [
+            "customer_id"   => auth($this->constant::CUSTOMER_GUARD)->user()->id,
+            "order_id"      => $order->id,
+            "amount"        => $request->price,
+            "status"        => $active,
+            "payment_status" => $paymentStatus,
+            "created_at"    => Carbon::now()
+        ];
+        $payment = Payment::create($paymentData);
         $address = Address::where('id', $request->address_id)->first();
         $order['address'] = $address;
+        $order['payment'] = $payment;
         return $this->successResponse(true, $order, $this->constant::ORDER_CREATED, $this->http::CREATED);
     }
 

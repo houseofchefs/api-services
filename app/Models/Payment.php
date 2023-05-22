@@ -11,22 +11,15 @@ class Payment extends Model
     use HasFactory;
 
     protected $fillable = [
+        "customer_id",
         "order_id",
-        "payment_method",
         "amount",
+        "razorpay_payment_id",
+        "razorpay_signature",
+        "razorpay_order_id",
         "payment_status",
-        "transaction_id",
-        "reference_id",
-        "created_at"
+        "status"
     ];
-
-    /**
-     * @return BelongsTo
-     */
-    public function method(): BelongsTo
-    {
-        return $this->belongsTo(Modules::class, 'payment_method');
-    }
 
     /**
      * @return BelongsTo
