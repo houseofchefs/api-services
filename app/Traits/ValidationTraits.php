@@ -186,8 +186,7 @@ trait ValidationTraits
             "product_id"    => 'required',
             "address_id"    => 'required_unless:latitude,""',
             "longtitude"    => 'required_without:address_id',
-            "latitude"      => 'required_without:address_id',
-            "payment_method"=> 'required'
+            "latitude"      => 'required_without:address_id'
         ];
     }
 

@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Razorpay\Api\Api;
 
 class OrderController extends Controller
 {
@@ -55,8 +56,8 @@ class OrderController extends Controller
                 "customer_id"   => auth($this->constant::CUSTOMER_GUARD)->user()->id
             )
         ));
-        DB::transaction(function () use ($order, $request) {
 
+        DB::transaction(function () use ($order, $request) {
             // Order Details $store func
             if (count($request->get('product_id')) > 0) {
                 foreach ($request->get('product_id') as $menu) {
@@ -71,14 +72,24 @@ class OrderController extends Controller
         });
         $paymentStatus = $this->getModuleIdBasedOnCode('PS01');
         $active = $this->getModuleIdBasedOnCode('CS01');
+
+        $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+        $razorpay = $api->order->create([
+            'receipt' => $order->id,
+            'amount' => $request->price * 100,
+            'currency' => 'INR',
+            'payment_capture' => 1
+        ]);
         $paymentData = [
-            "customer_id"   => auth($this->constant::CUSTOMER_GUARD)->user()->id,
-            "order_id"      => $order->id,
-            "amount"        => $request->price,
-            "status"        => $active,
-            "payment_status" => $paymentStatus,
-            "created_at"    => Carbon::now()
+            "customer_id"       => auth($this->constant::CUSTOMER_GUARD)->user()->id,
+            "order_id"          => $order->id,
+            "amount"            => $request->price,
+            "razorpay_order_id" => $razorpay->id,
+            "status"            => $active,
+            "payment_status"    => $paymentStatus,
+            "created_at"        => Carbon::now()
         ];
+
         $payment = Payment::create($paymentData);
         $address = Address::where('id', $request->address_id)->first();
         $order['address'] = $address;

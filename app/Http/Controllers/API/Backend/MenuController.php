@@ -185,6 +185,7 @@ class MenuController extends Controller
     public function vendorBasedMenuList($id)
     {
         $data = DB::table('menus')
+            ->where('menus.vendor_id', $id)
             ->join('modules as m1', 'menus.status', '=', 'm1.id')
             ->join('modules as m2', 'menus.type', '=', 'm2.id')
             ->leftJoin('categories', 'menus.category_id', '=', 'categories.id')
@@ -202,7 +203,7 @@ class MenuController extends Controller
             categories.name as category,
             categories.id as category_id,
             menus.isApproved as approved'
-            )->where('vendor_id', $id)->orderBy("menus.id", 'desc')->paginate(12);
+            )->orderBy("menus.id", 'desc')->paginate(12);
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 
