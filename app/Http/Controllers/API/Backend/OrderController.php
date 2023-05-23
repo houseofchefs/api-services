@@ -75,19 +75,20 @@ class OrderController extends Controller
 
         $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
         $razorpay = $api->order->create([
-            'receipt' => $order->id,
-            'amount' => $request->price * 100,
-            'currency' => 'INR',
-            'payment_capture' => 1
+            'receipt'           => $order->id,
+            'amount'            => $request->price * 100,
+            'currency'          => 'INR',
+            'payment_capture'   => 1
         ]);
         $paymentData = [
-            "customer_id"       => auth($this->constant::CUSTOMER_GUARD)->user()->id,
-            "order_id"          => $order->id,
-            "amount"            => $request->price,
-            "razorpay_order_id" => $razorpay->id,
-            "status"            => $active,
-            "payment_status"    => $paymentStatus,
-            "created_at"        => Carbon::now()
+            "customer_id"           => auth($this->constant::CUSTOMER_GUARD)->user()->id,
+            "order_id"              => $order->id,
+            "amount"                => $request->price,
+            "razorpay_order_id"     => $razorpay->id,
+            "razorpay_receipt_id"   => $razorpay->receipt,
+            "status"                => $active,
+            "payment_status"        => $paymentStatus,
+            "created_at"            => Carbon::now()
         ];
 
         $payment = Payment::create($paymentData);
