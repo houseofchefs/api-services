@@ -61,7 +61,7 @@ class Orders extends Model
 
     public function payments(): HasOne
     {
-        return $this->hasOne(Payment::class, 'order_id', 'id');
+        return $this->hasOne(Payment::class, 'order_id');
     }
 
     public function customers(): BelongsTo

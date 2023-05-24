@@ -104,7 +104,7 @@ class OrderController extends Controller
      */
     public function orderList()
     {
-        $order = Orders::with(['details.menu', 'status'])->paginate();
+        $order = Orders::with(['details.menu', 'status', 'payments.status'])->paginate();
         return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
     }
 
@@ -114,7 +114,7 @@ class OrderController extends Controller
      */
     public function orderDetails(String $id)
     {
-        $order = Orders::with(['details.menu', 'status', 'address'])->where('id', $id)->first();
+        $order = Orders::with(['details.menu', 'status', 'address', 'payments.status'])->where('id', $id)->first();
         return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
     }
 
@@ -122,7 +122,7 @@ class OrderController extends Controller
     {
         # code...
         $auth = auth($this->constant::CUSTOMER_GUARD)->user()->id;
-        $order = Orders::where('id', $auth)->with(['status', 'payments.method', 'payments.status', 'details.menu', 'vendor'])->paginate(10);
+        $order = Orders::where('customer_id', $auth)->with(['status', 'payments.status', 'details.menu', 'vendor'])->paginate(10);
         return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
     }
 
@@ -136,7 +136,7 @@ class OrderController extends Controller
     public function vendorBasedOrderList($id, $code)
     {
         $modules = $this->getModuleIdBasedOnCode($code);
-        $order = Orders::with(['customers', 'payments.method', 'payments.status', 'details.menu', 'vendor', 'address', 'status'])->where('vendor_id', $id)->where('status', $modules)->paginate(10);
+        $order = Orders::with(['customers', 'payments.status', 'details.menu', 'vendor', 'address', 'status'])->where('vendor_id', $id)->where('status', $modules)->paginate(10);
         return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
     }
 
