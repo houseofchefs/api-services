@@ -353,4 +353,16 @@ trait ValidationTraits
             "longitude"     => 'required'
         ];
     }
+
+    protected function updatePaymentValidator(): array
+    {
+        return [
+            "payment_method"        => "required",
+            "razorpay_signature"    => "required",
+            "capture"               => "required",
+            "razorpay_order_id"     => "required",
+            "razorpay_payment_id"   => "required"
+
+        ];
+    }
 }

@@ -110,6 +110,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
                 Route::get('orders/list', 'orderListForCustomer');
                 Route::get('order/cancel/{id}', 'orderCancel');
                 Route::get('orders/list/{code}', 'customerBasedOrderList');
+                Route::put("order/payment/{id}", 'updatePayment');
             });
             #admin accessible route's
             Route::prefix('admin')->group(function () {

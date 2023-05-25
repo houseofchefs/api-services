@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Razorpay\Api\Api;
+use Razorpay\Api\Order;
 
 class OrderController extends Controller
 {
@@ -153,5 +154,31 @@ class OrderController extends Controller
         $modules = $this->getModuleIdBasedOnCode($code);
         $order = Orders::where('id', $id)->update(['status' => $modules]);
         return $this->successResponse(true, $order, $this->constant::UPDATED_SUCCESS);
+    }
+
+    public function updatePayment(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), $this->updatePaymentValidator());
+        // If validator fails it will #returns
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+
+        $payment = Payment::where("order_id", $id)->where('razorpay_order_id', $request->razorpay_order_id)->first();
+        $order = Orders::where("id", $id)->first();
+
+        if($payment && $order) {
+            $cancel = $this->getModuleIdBasedOnCode('PS02');
+            $success = $this->getModuleIdBasedOnCode('PS03');
+            $orderStatus = $this->getModuleIdBasedOnCode('OS02');
+
+            $order->status = $orderStatus;
+            $order->save();
+
+            $payment->razorpay_signature = $request->razorpay_signature;
+            $payment->payment_method = $request->payment_method;
+            $payment->razorpay_payment_id = $request->razorpay_payment_id;
+            $payment->payment_status = $request->capture ? $success : $cancel;
+            $payment->save();
+        }
+        return $this->successResponse(true, $payment, $this->constant::UPDATED_SUCCESS);
     }
 }
