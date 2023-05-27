@@ -116,7 +116,7 @@ class OrderController extends Controller
      */
     public function orderList()
     {
-        $order = Orders::with(['details.menu', 'status', 'payments.status'])->paginate();
+        $order = Orders::with(['details.menu', 'status', 'payments.status'])->orderBy('id','desc')->paginate();
         return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
     }
 
@@ -134,7 +134,7 @@ class OrderController extends Controller
     {
         # code...
         $auth = auth($this->constant::CUSTOMER_GUARD)->user()->id;
-        $order = Orders::where('customer_id', $auth)->with(['status', 'payments.status', 'details.menu', 'vendor'])->paginate(10);
+        $order = Orders::where('customer_id', $auth)->with(['status', 'payments.status', 'details.menu', 'vendor'])->orderBy('id','desc')->paginate(10);
         return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
     }
 
@@ -148,7 +148,7 @@ class OrderController extends Controller
     public function vendorBasedOrderList($id, $code)
     {
         $modules = $this->getModuleIdBasedOnCode($code);
-        $order = Orders::with(['customers', 'payments.status', 'details.menu', 'vendor', 'address', 'status'])->where('vendor_id', $id)->where('status', $modules)->paginate(10);
+        $order = Orders::with(['customers', 'payments.status', 'details.menu', 'vendor', 'address', 'status'])->where('vendor_id', $id)->where('status', $modules)->orderBy('id','desc')->paginate(10);
         return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
     }
 
@@ -156,7 +156,7 @@ class OrderController extends Controller
     {
         $modules = $this->getModuleIdBasedOnCode($code);
         $id = auth($this->constant::CUSTOMER_GUARD)->user()->id;
-        $order = Orders::with(['customers', 'payments.status', 'details.menu', 'vendor', 'address', 'status'])->where('customer_id', $id)->where('status', $modules)->paginate(10);
+        $order = Orders::with(['customers', 'payments.status', 'details.menu', 'vendor', 'address', 'status'])->where('customer_id', $id)->where('status', $modules)->orderBy('id','desc')->paginate(10);
         return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
     }
 
