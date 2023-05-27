@@ -186,7 +186,8 @@ trait ValidationTraits
             "product_id"    => 'required',
             "address_id"    => 'required_unless:latitude,""',
             "longtitude"    => 'required_without:address_id',
-            "latitude"      => 'required_without:address_id'
+            "latitude"      => 'required_without:address_id',
+            "cod"           => 'required'
         ];
     }
 
@@ -351,7 +352,8 @@ trait ValidationTraits
             "items"         => 'required',
             "latitude"      => 'required',
             "longitude"     => 'required',
-            "slot_id"       => 'required'
+            "slot_id"       => 'required',
+            "cod"           => 'required'
         ];
     }
 

@@ -19,6 +19,7 @@ class Payment extends Model
         "razorpay_order_id",
         "payment_status",
         "razorpay_receipt_id",
+        "payment_method",
         "status"
     ];
 

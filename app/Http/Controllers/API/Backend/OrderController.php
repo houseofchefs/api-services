@@ -73,24 +73,35 @@ class OrderController extends Controller
         });
         $paymentStatus = $this->getModuleIdBasedOnCode('PS01');
         $active = $this->getModuleIdBasedOnCode('CS01');
-
-        $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
-        $razorpay = $api->order->create([
-            'receipt'           => $order->id,
-            'amount'            => $request->price * 100,
-            'currency'          => 'INR',
-            'payment_capture'   => 1
-        ]);
-        $paymentData = [
-            "customer_id"           => auth($this->constant::CUSTOMER_GUARD)->user()->id,
-            "order_id"              => $order->id,
-            "amount"                => $request->price,
-            "razorpay_order_id"     => $razorpay->id,
-            "razorpay_receipt_id"   => $razorpay->receipt,
-            "status"                => $active,
-            "payment_status"        => $paymentStatus,
-            "created_at"            => Carbon::now()
-        ];
+        if (!$request->cod) {
+            $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+            $razorpay = $api->order->create([
+                'receipt'           => $order->id,
+                'amount'            => $request->price * 100,
+                'currency'          => 'INR',
+                'payment_capture'   => 1
+            ]);
+            $paymentData = [
+                "customer_id"           => auth($this->constant::CUSTOMER_GUARD)->user()->id,
+                "order_id"              => $order->id,
+                "amount"                => $request->price,
+                "razorpay_order_id"     => $razorpay->id,
+                "razorpay_receipt_id"   => $razorpay->receipt,
+                "status"                => $active,
+                "payment_status"        => $paymentStatus,
+                "created_at"            => Carbon::now()
+            ];
+        } else {
+            $paymentData = [
+                "customer_id"           => auth($this->constant::CUSTOMER_GUARD)->user()->id,
+                "order_id"              => $order->id,
+                "amount"                => $request->price,
+                "payment_method"        => "Cash on Delivery",
+                "status"                => $active,
+                "payment_status"        => $paymentStatus,
+                "created_at"            => Carbon::now()
+            ];
+        }
 
         $payment = Payment::create($paymentData);
         $address = Address::where('id', $request->address_id)->first();
@@ -165,7 +176,7 @@ class OrderController extends Controller
         $payment = Payment::where("order_id", $id)->where('razorpay_order_id', $request->razorpay_order_id)->first();
         $order = Orders::where("id", $id)->first();
 
-        if($payment && $order) {
+        if ($payment && $order) {
             $cancel = $this->getModuleIdBasedOnCode('PS02');
             $success = $this->getModuleIdBasedOnCode('PS03');
             $orderStatus = $this->getModuleIdBasedOnCode('OS02');
