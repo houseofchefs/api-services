@@ -145,7 +145,7 @@ class OrderController extends Controller
     {
         $modules = $this->getModuleIdBasedOnCode($code);
         $id = auth($this->constant::CUSTOMER_GUARD)->user()->id;
-        $order = Orders::with(['customers', 'payments.method', 'payments.status', 'details.menu', 'vendor', 'address', 'status'])->where('customer_id', $id)->where('status', $modules)->paginate(10);
+        $order = Orders::with(['customers', 'payments.status', 'details.menu', 'vendor', 'address', 'status'])->where('customer_id', $id)->where('status', $modules)->paginate(10);
         return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
     }
 

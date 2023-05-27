@@ -33,7 +33,9 @@ class Orders extends Model
         'rider_deliver_at',
         'instructions',
         'latitude',
-        'longtitude',
+        'longitude',
+        'pre_booking',
+        'delivery_datetime',
         'status',
     ];
 

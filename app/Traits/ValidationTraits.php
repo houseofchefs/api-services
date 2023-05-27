@@ -350,7 +350,8 @@ trait ValidationTraits
             "price"         => 'required',
             "items"         => 'required',
             "latitude"      => 'required',
-            "longitude"     => 'required'
+            "longitude"     => 'required',
+            "slot_id"       => 'required'
         ];
     }
 
