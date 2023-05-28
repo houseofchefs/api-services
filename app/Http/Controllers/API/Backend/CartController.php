@@ -107,4 +107,12 @@ class CartController extends Controller
         Cart::where('id', $id)->delete();
         return $this->successResponse(true, "", $this->constant::GET_SUCCESS, $this->http::OK);
     }
+
+    /**
+     * Remove customer based cart list
+     */
+    public function customerCartRemove($id) {
+        Cart::where('user_id', $id)->delete();
+        return $this->successResponse(true, "", $this->constant::GET_SUCCESS, $this->http::OK);
+    }
 }
