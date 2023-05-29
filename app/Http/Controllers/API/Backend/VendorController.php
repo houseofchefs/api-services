@@ -32,7 +32,7 @@ class VendorController extends Controller
     {
         # code...
         $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
-        $data = Vendor::with('status')->where('status', $status)->paginate(10);
+        $data = Vendor::with('status')->where('status', $status)->orderBy('id','desc')->paginate(10);
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 

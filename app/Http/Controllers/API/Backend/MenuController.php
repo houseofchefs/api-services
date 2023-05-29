@@ -162,13 +162,13 @@ class MenuController extends Controller
             $wishlist = DB::table('wishlists')
                 ->join('products', 'products.id', '=', 'wishlists.menu_id')
                 ->join('vendors', 'products.vendor_id', '=', 'vendors.id')
-                ->select('products.id as menu_id', 'products.name as name', 'products.description as description', 'products.image as image', 'products.price as price', 'products.rating as rating', 'products.ucount as ratingCount', 'vendors.name as vendorName')
+                ->select('products.id as product_id', 'products.name as name', 'products.description as description', 'products.image as image', 'products.price as price', 'products.rating as rating', 'products.ucount as ratingCount', 'vendors.name as vendorName')
                 ->where('wishlists.customer_id', '=', $id)
                 ->paginate(10);
         } elseif ($request->type == "vendor") {
             $wishlist = DB::table('wishlists')
                 ->join('vendors', 'vendors.id', '=', 'wishlists.menu_id')
-                ->select('vendors.id as menu_id', 'vendors.name as name',  'vendors.rating as rating', 'vendors.ucount as ratingCount')
+                ->select('vendors.id as id', 'vendors.name as name',  'vendors.rating as rating', 'vendors.ucount as ratingCount', 'vendors.latitude as latitude', 'vendors.longitude as longitude')
                 ->where('wishlists.customer_id', '=', $id)
                 ->paginate(10);
         }

@@ -358,13 +358,13 @@ class AuthController extends Controller
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
 
         DB::transaction(function () use ($request) {
-            $vendors = $request->only(['name', 'email', 'mobile', 'gst_no', 'latitude', 'longitude']);
+            $vendors = $request->only(['name', 'email', 'mobile', 'gst_no', 'latitude', 'longitude', 'order_accept_time', 'close_time', 'open_time']);
             $address = $request->only(['door_no', 'lanmark', 'address_line', 'latitude', 'longitude', 'pincode', 'place_id']);
             $bank = $request->only(['bank_name', 'account_number', 'account_type', 'ifsc_code', 'holder_name']);
 
             $bankDetail = Bank::create(array_merge($bank, array('guard' => "cook")));
             $addressDetail = Address::create(array_merge($address, array('guard' => "cook")));
-            $vendor = Vendor::create(array_merge($vendors, array('bank_id' => $bankDetail->id, 'address_id' => $addressDetail->id, 'created_by' => auth($this->constant::ADMIN_GUARD)->user()->id)));
+            $vendor = Vendor::create(array_merge($vendors, array('bank_id' => $bankDetail->id, 'address_id' => $addressDetail->id, 'created_by' => 1)));
             $bankDetail->user_id = $vendor->id;
             $addressDetail->user_id = $vendor->id;
             $bankDetail->save();

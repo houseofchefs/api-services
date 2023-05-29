@@ -279,7 +279,10 @@ trait ValidationTraits
             'bank_name'         => 'required',
             'holder_name'       => 'required',
             'ifsc_code'         => 'required:max:14',
-            'address_line'      => 'required'
+            'address_line'      => 'required',
+            "open_time"         => 'required',
+            "close_time"        => 'required',
+            'order_accept_time' => 'required'
         ];
     }
 

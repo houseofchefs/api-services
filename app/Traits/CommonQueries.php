@@ -88,7 +88,7 @@ trait CommonQueries
             ->join('users', 'categories.created_by', '=', 'users.id')
             ->join('modules', 'categories.status', '=', 'modules.id')
             ->leftJoin('vendors', 'categories.vendor_id', '=', 'vendors.id')
-            ->select('categories.name', 'users.name as created', 'modules.module_name as status', 'categories.id', 'categories.image','vendors.name as vendor_name','categories.vendor_id as vendor_id')
+            ->select('categories.name', 'users.name as created', 'modules.module_name as status', 'categories.id', 'categories.image', 'vendors.name as vendor_name', 'categories.vendor_id as vendor_id')
             ->addSelect(DB::raw('(SELECT GROUP_CONCAT(modules.module_name SEPARATOR ", ") FROM categories_has_slot
                                 JOIN modules ON categories_has_slot.slot_id = modules.id
                                 WHERE categories_has_slot.category_id = categories.id) as slots'));
@@ -143,7 +143,7 @@ trait CommonQueries
         $customerId = auth('customer')->user()->id;
 
         return DB::table('vendors')
-            ->selectRaw('menus.id as id,menus.price as price,vendors.id as vendor_id,menus.description as description,menus.name as name,menus.isDaily as isDaily,vendors.name as vendorName,categories.name as categoryName,menus.rating as rating, menus.ucount as ratingCount,menus.image as image,vendors.latitude as latitude,vendors.longitude as longitude,IF(wishlists.id IS NULL, false, true) AS wishlist,modules.module_name as type, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
+            ->selectRaw('menus.id as id, vendors.open_time as open_time,vendors.close_time as close_time,vendors.order_accept_time as order_accept_time, menus.price as price,vendors.id as vendor_id,menus.description as description,menus.name as name,menus.isDaily as isDaily,vendors.name as vendorName,categories.name as categoryName,menus.rating as rating, menus.ucount as ratingCount,menus.image as image,vendors.latitude as latitude,vendors.longitude as longitude,IF(wishlists.id IS NULL, false, true) AS wishlist,modules.module_name as type, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
             ->join('menus', 'menus.vendor_id', '=', 'vendors.id')
             ->join('categories', 'categories.id', '=', 'menus.category_id')
             ->join('categories_has_slot', 'categories_has_slot.category_id', '=', 'menus.category_id')

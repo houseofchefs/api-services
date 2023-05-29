@@ -179,10 +179,10 @@ class OrderController extends Controller
         if ($payment && $order) {
             $cancel = $this->getModuleIdBasedOnCode('PS02');
             $success = $this->getModuleIdBasedOnCode('PS03');
-            $orderStatus = $this->getModuleIdBasedOnCode('OS02');
+            // $orderStatus = $this->getModuleIdBasedOnCode('OS02');
 
-            $order->status = $orderStatus;
-            $order->save();
+            // $order->status = $orderStatus;
+            // $order->save();
 
             $payment->razorpay_signature = $request->razorpay_signature;
             $payment->payment_method = $request->payment_method;
