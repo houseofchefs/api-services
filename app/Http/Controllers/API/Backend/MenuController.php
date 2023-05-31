@@ -96,14 +96,14 @@ class MenuController extends Controller
         DB::transaction(function () use ($request, $status, $type) {
             // Create Menu
             $menu = Menu::create(array_merge($request->only(['name', 'category_id', 'vendor_id', 'price', 'isPreOrder', 'isDaily', 'image', 'description', 'min_quantity']), array('status' => $status, 'type' => $type)));
-            if (count($request->ingredient_id) > 0) {
+            if ($request->ingredient_id && count($request->ingredient_id) > 0) {
                 foreach ($request->ingredient_id as $ingredients) {
                     MenuHasIngredient::create(["menu_id" => $menu->id, "ingredient_id" => $ingredients]);
                 }
             }
 
             if ($request->isPreOrder && !$request->isDaily) {
-                if (count($request->days) > 0) {
+                if ($request->days != null && count($request->days) > 0) {
                     foreach ($request->days as $day) {
                         MenuAvailableDay::create(["menu_id" => $menu->id, "day" => $day]);
                     }
