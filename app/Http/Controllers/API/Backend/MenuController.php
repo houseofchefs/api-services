@@ -244,7 +244,7 @@ class MenuController extends Controller
             }
             MenuHasIngredient::where('menu_id', $id)->delete();
             MenuAvailableDay::where('menu_id', $id)->delete();
-            if (count($request->ingredient_id) > 0) {
+            if ($request->ingredient_id && count($request->ingredient_id) > 0) {
                 foreach ($request->ingredient_id as $ingredients) {
                     MenuHasIngredient::create(["menu_id" => $id, "ingredient_id" => $ingredients]);
                 }
