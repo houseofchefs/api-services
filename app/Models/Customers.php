@@ -27,6 +27,8 @@ class Customers extends Authenticatable implements JWTSubject
         'signup_with'
     ];
 
+    protected $table = 'customers';
+
     protected $guard_name = 'customer';
 
     /**

@@ -35,27 +35,26 @@ class DiscountController extends Controller
     public function index()
     {
         $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
-        $discount = DB::table('discounts')
-            ->where([
-                ['discounts.status', $status],
-                ['discounts.expire_at', '>', Carbon::now()]
-            ])
-            ->join('modules as mstatus', 'discounts.status', '=', 'mstatus.id')
-            ->join('modules as mtype', 'discounts.type', '=', 'mtype.id')
-            ->join('vendors', 'discounts.vendor_id', '=', 'vendors.id')
-            ->join('categories', 'discounts.category_id', '=', 'categories.id')
-            ->join('users', 'discounts.created_by', '=', 'users.id')
-            ->select(
-                'discounts.id as id',
-                'discounts.name',
-                'vendors.name as vendor_name',
-                'mtype.module_name as type',
-                'categories.name as category',
-                'discounts.percentage as percentage',
-                'discounts.expire_at as expireAt'
-            )
-            ->paginate(10);
-
+        $discount = Discount::with(['vendor', 'status', 'type'])->paginate(10);
+        // $discount = DB::table('discounts')
+        // ->where([
+        //     ['discounts.status', $status],
+        //     ['discounts.expire_at', '<', Carbon::now()]
+        // ])
+        //     ->join('modules as mstatus', 'discounts.status', '=', 'mstatus.id')
+        //     ->join('modules as mtype', 'discounts.type', '=', 'mtype.id')
+        //     ->join('vendors', 'discounts.vendor_id', '=', 'vendors.id')
+        //     ->join('categories', 'discounts.category_id', '=', 'categories.id')
+        //     ->select(
+        //         'discounts.id as id',
+        //         'discounts.name',
+        //         'vendors.name as vendor_name',
+        //         'mtype.module_name as type',
+        //         'categories.name as category',
+        //         'discounts.percentage as percentage',
+        //         'discounts.expire_at as expireAt'
+        //     )
+        //     ->paginate(10);
 
         return $this->successResponse(true, $discount, $this->constant::GET_SUCCESS, $this->http::OK);
     }
@@ -73,27 +72,19 @@ class DiscountController extends Controller
      */
     public function store(Request $request)
     {
-        $id = auth()->user()->id;
         $validator = Validator::make($request->all(), $this->discountValidator());
 
         // If validator fails it will #returns
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
 
-        // type #id
-        $type = $this->getModuleIdBasedOnCode($request->get('type'));
-        $count = $this->getModuleBasedOnCode($request->get('type'))->description;
         // Status
         $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
 
         // Create Discount
         $discount = Discount::create(array_merge(
-            $request->only(['name', 'description', 'image', 'vendor_id', 'category_id', "percentage"]),
+            $request->only(['name', 'description', 'image', 'vendor_id', 'category_id', "percentage", "expire_at", 'type']),
             array(
-                'type' => $type,
-                'expire_at' => Carbon::now()->addDays($count),
-                'status' => $status,
-                'created_by' => $id,
-                'updated_by' => $id
+                'status' => $status
             )
         ));
         return $this->successResponse(true, $discount, $this->constant::DISCOUNT_CREATED, $this->http::CREATED);
@@ -105,7 +96,7 @@ class DiscountController extends Controller
     public function show(string $id)
     {
         $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
-        $discount = Discount::with(['status', 'createdBy', 'type'])->where([['id', $id], ['status', $status]])->first();
+        $discount = Discount::with(['vendor', 'status', 'type'])->where([['id', $id], ['status', $status]])->first();
         return $this->successResponse(true, $discount, $this->constant::GET_SUCCESS, $this->http::OK);
     }
 
@@ -124,20 +115,15 @@ class DiscountController extends Controller
     {
         $discount = Discount::where('id', $id)->first();
         if (optional($discount)->id) {
-            // type #id
-            $type = $this->getModuleIdBasedOnCode($request->get('type'));
-            $count = $this->getModuleBasedOnCode($request->get('type'))->description;
-            // Status
-            $status = $this->getModuleIdBasedOnCode($request->get('status'));
 
             $discount->name = $request->name;
+            $discount->category_id = $request->category_id;
+            $discount->vendor_id = $request->vendor_id;
+            $discount->percentage = $request->percentage;
             $discount->description = $request->description;
             $discount->image = $request->image;
-            $discount->type = $type;
-            $discount->status = $status;
-            if ($discount->type != $type) {
-                $discount->expire_at = Carbon::now()->addDays($count);
-            }
+            $discount->type = $request->type;
+            $discount->status = $request->status;
             $discount->save();
             return $this->successResponse(true, $discount, $this->constant::DISCOUNT_UPDATED, $this->http::OK);
         }

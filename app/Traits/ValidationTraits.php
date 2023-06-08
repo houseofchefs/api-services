@@ -2,6 +2,8 @@
 
 namespace App\Traits;
 
+use Illuminate\Validation\Rule;
+
 trait ValidationTraits
 {
     /**
@@ -31,10 +33,24 @@ trait ValidationTraits
     protected function adminSignUpValidator(): array
     {
         return [
-            'mobile'    => 'required|min:8|max:16|unique:users',
+            'mobile'    => 'required|min:8|max:16|unique:users, mobile',
             "name"      => 'required|max:30',
             "password"  => 'required',
-            "role"      => 'required'
+            "role"      => 'required',
+            "email"     => 'required'
+        ];
+    }
+
+    protected function updateAdminValidator($id): array
+    {
+        return [
+            'mobile'    => [
+                'required',
+                'min:8',
+                'max:16', Rule::unique('users')->ignore($id),
+            ],
+            "name"      => 'required|max:30',
+            "email"     => 'required'
         ];
     }
 
@@ -96,7 +112,24 @@ trait ValidationTraits
     protected function customerSignupValidator(): array
     {
         return [
-            'mobile'    => 'required|min:8|max:16',
+            'mobile'    => 'required|min:8|max:16|unique:customers,mobile',
+            "name"      => 'required|max:30',
+            "dob"       => "required|date",
+            "email"     => "required|email",
+        ];
+    }
+
+    /**
+     * @customer update signup validator
+     */
+    protected function updateCustomerSignupValidator($id): array
+    {
+        return [
+            'mobile'    => [
+                'required',
+                'min:8',
+                'max:16', Rule::unique('customers')->ignore($id),
+            ],
             "name"      => 'required|max:30',
             "dob"       => "required|date",
             "email"     => "required|email",
@@ -224,7 +257,11 @@ trait ValidationTraits
             "name"          => 'required',
             "description"   => 'required',
             "image"         => 'required',
-            "type"          => 'required'
+            "type"          => 'required',
+            "category_id"   => 'required',
+            "vendor_id"     => 'required',
+            'percentage'    => 'required',
+            'expire_at'     => 'required'
         ];
     }
 
@@ -273,6 +310,28 @@ trait ValidationTraits
             'name'              => 'required|max:30',
             'mobile'            => 'required|unique:vendors,mobile',
             'email'             => 'required|unique:vendors,email',
+            'door_no'           => 'required',
+            'account_number'    => 'required|max:16',
+            'account_type'      => 'required',
+            'bank_name'         => 'required',
+            'holder_name'       => 'required',
+            'ifsc_code'         => 'required:max:14',
+            'address_line'      => 'required',
+            "open_time"         => 'required',
+            "close_time"        => 'required',
+            'order_accept_time' => 'required'
+        ];
+    }
+
+    /**
+     * @vendor update validation
+     */
+    protected function updateVendorValidator($id): array
+    {
+        return [
+            'name'              => 'required|max:30',
+            'mobile'            => ['required', Rule::unique('vendors')->ignore($id)],
+            'email'             => ['required', Rule::unique('vendors')->ignore($id)],
             'door_no'           => 'required',
             'account_number'    => 'required|max:16',
             'account_type'      => 'required',

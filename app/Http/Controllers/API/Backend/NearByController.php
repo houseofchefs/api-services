@@ -143,7 +143,7 @@ class NearByController extends Controller
         $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
         $status = $this->getModuleIdBasedOnCode($this->constant::MENU_APPROVED);
 
-        $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)->where('menus.isPreOrder', 0)->paginate(10);
+        $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)->paginate(10);
         foreach ($data as $subData) {
             $destination = $subData->latitude . ',' . $subData->longitude;
             $google = $this->getDistance($origin, $destination);
@@ -164,7 +164,7 @@ class NearByController extends Controller
         $origin = $latitude . ',' . $longitude;
         $status = $this->getModuleIdBasedOnCode($this->constant::MENU_APPROVED);
 
-        $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)->where('menus.category_id', $request->categoryId)->where('menus.isPreOrder', 0)->paginate(10);
+        $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)->where('menus.category_id', $request->categoryId)->paginate(10);
         foreach ($data as $subData) {
             $destination = $subData->latitude . ',' . $subData->longitude;
             $google = $this->getDistance($origin, $destination);

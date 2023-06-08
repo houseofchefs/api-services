@@ -203,9 +203,10 @@ class AuthController extends Controller
         // If validator fails it will #returns
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
 
-        $user = Customers::where('mobile', $request->mobile)->update(array_merge($request->only(['name', 'dob', 'email']), [
+        Customers::create(array_merge($request->only(['name', 'dob', 'email', 'mobile']), [
             'referral_code' => $this->generateRandomString(),
-            'signup_with'   => $request->get('referral')
+            'signup_with'   => $request->get('referral'),
+            'password'      => env($this->constant::CUSTOMER_PASSWORD)
         ]));
 
         // Referral Points add #section
@@ -216,7 +217,7 @@ class AuthController extends Controller
                 $refer->save();
             }
         }
-        return $this->successResponse(true, "", $this->constant::UPDATED_SUCCESS, 200);
+        return $this->successResponse(true, "", $this->constant::CREATED_SUCCESS, 201);
     }
 
     /**

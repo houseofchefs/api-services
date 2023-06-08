@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\API\Auth\AuthController;
+use App\Http\Controllers\API\Backend\AdminController;
 use App\Http\Controllers\API\Backend\CartController;
 use App\Http\Controllers\API\Backend\CategoryController;
 use App\Http\Controllers\API\Backend\CookController;
+use App\Http\Controllers\API\Backend\CustomerController;
 use App\Http\Controllers\API\Backend\DetailsController;
 use App\Http\Controllers\API\Backend\DiscountController;
 use App\Http\Controllers\API\Backend\HomeController;
@@ -176,11 +178,22 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('list', 'index');
             Route::get('edit/{id}', 'edit');
             Route::get('/dropdown', 'dropdownVendor');
+            Route::put('edit/{id}', 'updateVendor');
         });
         Route::prefix('staff')->controller(StaffController::class)->group(function () {
             Route::get('vendor-based/list/{id}', 'index');
             Route::get('active/{id}', 'active');
             Route::get('inactive/{id}', 'inactive');
+        });
+        Route::prefix('customer')->controller(CustomerController::class)->group(function () {
+            Route::get('list', 'index');
+            Route::get('edit/{id}', 'edit');
+            Route::put('update/{id}', 'update');
+        });
+        Route::prefix('admin')->controller(AdminController::class)->group(function () {
+            Route::get('list', 'index');
+            Route::get('edit/{id}', 'edit');
+            Route::put('update/{id}', 'update');
         });
     });
 });
