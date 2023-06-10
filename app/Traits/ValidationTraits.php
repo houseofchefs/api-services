@@ -173,12 +173,13 @@ trait ValidationTraits
             'type'          => 'required',
             'vendor_id'     => 'required',
             'category_id'   => 'required',
-            'price'         => 'required',
+            'vendor_price'  => 'required',
             'image'         => 'required',
             'isDaily'       => 'required',
             'isPreOrder'    => 'required',
             'description'   => 'required',
-            'min_quantity'  => 'required'
+            'min_quantity'  => 'required',
+            'admin_price'   => 'required'
         ];
     }
 
@@ -192,13 +193,14 @@ trait ValidationTraits
             'type'          => 'required',
             'vendor_id'     => 'required',
             'category_id'   => 'required',
-            'price'         => 'required',
+            'vendor_price'  => 'required',
             'image'         => 'required',
             'isDaily'       => 'required',
             'isPreOrder'    => 'required',
             'description'   => 'required',
             'min_quantity'  => 'required',
-            'status'        => 'required'
+            'status'        => 'required',
+            'admin_price'   => 'required'
         ];
     }
 
@@ -382,7 +384,8 @@ trait ValidationTraits
             "vendor_id"     => "required",
             "image"         => 'required',
             "units"         => 'required',
-            "price"         => 'required',
+            "vendor_price"  => 'required',
+            "admin_price"   => 'required'
         ];
     }
 
@@ -397,7 +400,9 @@ trait ValidationTraits
             "image"         => 'required',
             "units"         => 'required',
             "price"         => 'required',
-            "status"        => 'required'
+            "status"        => 'required',
+            "vendor_price"  => 'required',
+            "admin_price"   => 'required'
         ];
     }
 

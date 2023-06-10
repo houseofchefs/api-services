@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Constants\Constants;
 use App\Constants\HTTPStatusCode;
+use App\Models\Menu;
 use App\Models\Product;
 use App\Traits\ResponseTraits;
 use App\Traits\ValidationTraits;
@@ -57,8 +58,9 @@ class ProductController extends Controller
         // Product #status
         $modules = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
 
+        $price = $request->vendor_price + $request->admin_price;
         // create
-        Product::create(array_merge($request->only(["name", "description", "image","vendor_id", "units", "price"]), array('status' => $modules)));
+        Menu::create(array_merge($request->only(["name", "description", "image", "vendor_id", "units", "vendor_price", "admin_price", 'category_id', 'menu_type', "isPreOrder", "isDaily", 'type', "min_quantity"]), array('status' => $modules, "price" => $price)));
 
         return $this->successResponse(true, "", $this->constant::CREATED_SUCCESS, $this->http::CREATED);
     }
@@ -93,13 +95,15 @@ class ProductController extends Controller
 
         // Product #status
         $modules = $this->getModuleIdBasedOnCode($request->status);
-        $product = Product::where('id', $id)->first();
+        $product = Menu::where('id', $id)->first();
         if ($product) {
             $product->name = $request->name;
             $product->description = $request->description;
             $product->image = $request->image;
             $product->units = $request->units;
-            $product->price = $request->price;
+            $product->vendor_price = $request->vendor_price;
+            $product->admin_price = $request->admin_price;
+            $product->price = $request->vendor_price + $request->admin_price;
             $product->status = $modules;
             $product->save();
         }
@@ -115,8 +119,9 @@ class ProductController extends Controller
         //
     }
 
-    public function vendorBasedProduct($id) {
-        $data = Product::with('status')->where('vendor_id', $id)->orderBy('id','desc')->paginate(12);
+    public function vendorBasedProduct($id)
+    {
+        $data = Menu::with('status')->where('vendor_id', $id)->where('menu_type', 'product')->orderBy('id', 'desc')->paginate(12);
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 }

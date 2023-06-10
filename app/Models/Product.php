@@ -17,7 +17,9 @@ class Product extends Model
         "image",
         "units",
         "price",
-        "status"
+        "status",
+        'vendor_price',
+        'admin_price',
     ];
 
     /**

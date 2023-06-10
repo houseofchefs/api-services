@@ -95,7 +95,8 @@ class MenuController extends Controller
 
         DB::transaction(function () use ($request, $status, $type) {
             // Create Menu
-            $menu = Menu::create(array_merge($request->only(['name', 'category_id', 'vendor_id', 'price', 'isPreOrder', 'isDaily', 'image', 'description', 'min_quantity']), array('status' => $status, 'type' => $type)));
+            $price = $request->admin_price + $request->vendor_price;
+            $menu = Menu::create(array_merge($request->only(['name', 'category_id', 'vendor_id', 'vendor_price', 'admin_price', 'isPreOrder', 'isDaily', 'image', 'description', 'min_quantity']), array('status' => $status, 'type' => $type, 'price' => $price)));
             if ($request->ingredient_id && count($request->ingredient_id) > 0) {
                 foreach ($request->ingredient_id as $ingredients) {
                     MenuHasIngredient::create(["menu_id" => $menu->id, "ingredient_id" => $ingredients]);
@@ -240,7 +241,8 @@ class MenuController extends Controller
         DB::transaction(function () use ($request, $type, $id) {
             $data = Menu::where('id', $id)->first();
             if ($data->count() > 0) {
-                $menu = Menu::where('id', $id)->update(array_merge($request->only(['name', 'category_id', 'vendor_id', 'price', 'isPreOrder', 'isDaily', 'image', 'description', 'min_quantity', 'status', 'isApproved']), array('type' => $type)));
+                $price = $request->vendor_price + $request->admin_price;
+                Menu::where('id', $id)->update(array_merge($request->only(['name', 'category_id', 'vendor_id', 'vendor_price', 'admin_price', 'isPreOrder', 'isDaily', 'image', 'description', 'min_quantity', 'status', 'isApproved']), array('type' => $type, 'price' => $price)));
             }
             MenuHasIngredient::where('menu_id', $id)->delete();
             MenuAvailableDay::where('menu_id', $id)->delete();

@@ -9,6 +9,7 @@ use App\Http\Controllers\API\Backend\CustomerController;
 use App\Http\Controllers\API\Backend\DetailsController;
 use App\Http\Controllers\API\Backend\DiscountController;
 use App\Http\Controllers\API\Backend\HomeController;
+use App\Http\Controllers\API\Backend\ImageController;
 use App\Http\Controllers\API\Backend\MenuController;
 use App\Http\Controllers\API\Backend\ModuleController;
 use App\Http\Controllers\API\Backend\NearByController;
@@ -124,6 +125,11 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::prefix('vendor')->group(function () {
                 Route::get('order/{id}/{code}', 'vendorBasedOrderList');
             });
+            ## Reviews
+            Route::prefix('reviews')->group(function () {
+                Route::get('{id}', 'getOrderReviewList');
+                Route::post('{id}', 'orderRating');
+            });
         });
 
         ## Address and Bank Details
@@ -173,6 +179,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('/category-based/menu', 'slotAndCategoryMenuItemsList');
             Route::get('vendors', 'vendorList');
             Route::get('products', 'productList');
+            Route::get('global-search', 'globalSearch');
         });
         Route::prefix('vendor')->controller(VendorController::class)->group(function () {
             Route::get('list', 'index');
@@ -195,5 +202,8 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('edit/{id}', 'edit');
             Route::put('update/{id}', 'update');
         });
+
+        Route::post('image/upload', [ImageController::class, 'uploadImage']);
+        Route::get('image/upload', [ImageController::class, 'getImage']);
     });
 });

@@ -18,6 +18,8 @@ class Menu extends Model
         'vendor_id',
         'description',
         'isApproved',
+        'menu_type',
+        'units',
         'isPreOrder',
         'isDaily',
         'type',
@@ -25,6 +27,8 @@ class Menu extends Model
         'min_quantity',
         'price',
         'status',
+        'vendor_price',
+        'admin_price',
         'created_by',
         'updated_by'
     ];

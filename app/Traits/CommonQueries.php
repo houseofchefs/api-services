@@ -115,6 +115,7 @@ trait CommonQueries
                     ->where('wishlists.customer_id', '=', $customerId)
                     ->where('wishlists.type', '=', 'menu');
             })
+            ->where('menus.menu_type', 'menu')
             ->selectRaw(
                 'menus.id as id,
                 menus.rating as rating,
@@ -149,6 +150,7 @@ trait CommonQueries
             ->join('categories_has_slot', 'categories_has_slot.category_id', '=', 'menus.category_id')
             ->join('modules', 'modules.id', '=', 'menus.type')
             ->where('menus.isApproved', 1)
+            ->where('menus.menu_type', 'menu')
             ->when(!$slotId == 0, function ($q) use ($slotId) {
                 return $q->where('categories_has_slot.slot_id', '=', $slotId);
             })
@@ -160,5 +162,28 @@ trait CommonQueries
             ->where('menus.status', $status)
             ->whereRaw('( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) <= ?', [$latitude, $longitude, $latitude, $radius])
             ->distinct();
+    }
+
+    function checkWithinRadius($latitude, $longitude, $centerLat, $centerLong, $radius)
+    {
+        $earthRadius = 6371; // Earth's radius in kilometers
+
+        // Convert all latitudes and longitudes from degrees to radians
+        $lat1 = deg2rad($latitude);
+        $lon1 = deg2rad($longitude);
+        $lat2 = deg2rad($centerLat);
+        $lon2 = deg2rad($centerLong);
+
+        // Calculate the distance between the two points using the haversine formula
+        $deltaLon = $lon2 - $lon1;
+        $deltaLat = $lat2 - $lat1;
+        $a = sin($deltaLat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($deltaLon / 2) ** 2;
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        // Calculate the distance in kilometers
+        $distance = $earthRadius * $c;
+
+        // Check if the distance is within the radius
+        return $distance <= $radius;
     }
 }

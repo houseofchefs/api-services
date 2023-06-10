@@ -35,6 +35,7 @@ class Orders extends Model
         'latitude',
         'longitude',
         'pre_booking',
+        'isRated',
         'delivery_datetime',
         'status',
     ];

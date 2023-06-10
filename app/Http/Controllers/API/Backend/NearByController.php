@@ -8,7 +8,10 @@ use App\Traits\ValidationTraits;
 use App\Traits\CommonQueries;
 use App\Constants\Constants;
 use App\Constants\HTTPStatusCode;
+use App\Models\Categories;
+use App\Models\Menu;
 use App\Models\MenuAvailableDay;
+use App\Models\Vendor;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
@@ -217,10 +220,11 @@ class NearByController extends Controller
         $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
 
         $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
-        $data = DB::table('products')
-            ->selectRaw('vendors.id as vendor_id,products.description as description,products.name as name,products.id as id,products.price as price,products.image as image,vendors.name as vendor_name,products.units as units,vendors.latitude as latitude, vendors.longitude as longitude, vendors.rating as rating, vendors.ucount as count,IF(wishlists.id IS NULL, false, true) AS wishlist, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
-            ->join('vendors', 'products.vendor_id', '=', 'vendors.id')
-            ->where('products.status', $status)
+        $data = DB::table('menus')
+            ->selectRaw('vendors.id as vendor_id,menus.description as description,menus.name as name,menus.id as id,menus.price as price,menus.image as image,vendors.name as vendor_name,menus.units as units,vendors.latitude as latitude, vendors.longitude as longitude, vendors.rating as rating, vendors.ucount as count,IF(wishlists.id IS NULL, false, true) AS wishlist, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
+            ->join('vendors', 'menus.vendor_id', '=', 'vendors.id')
+            ->where('menus.status', $status)
+            ->where('menus.menu_type', 'product')
             ->leftJoin('wishlists', function ($join) use ($customerId) {
                 $join->on('wishlists.menu_id', '=', 'vendors.id')
                     ->where('wishlists.customer_id', '=', $customerId)
@@ -234,6 +238,34 @@ class NearByController extends Controller
             $subData->distance = $google['distance']['text'];
             $subData->time = $google['duration']['text'];
         }
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+    }
+
+    /**
+     * Global Search
+     */
+    public function globalSearch(Request $request)
+    {
+        $vendors = Vendor::get();
+        $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
+        $withinVendor = [];
+
+        foreach ($vendors as $vendor) {
+            if ($this->checkWithinRadius($request->get('latitude'), $request->get('longitude'), $vendor->latitude, $vendor->longitude, $radius)) {
+                array_push($withinVendor, $vendor->id);
+            }
+        }
+
+        if ($request->get('search') != null && $request->get('search') != "") {
+            // Category
+            $category = Categories::where('name', 'like', '%' . $request->get('search') . '%')->whereIn('vendor_id', array_merge($withinVendor, [0]))->get();
+            // Menu
+            $menu = Menu::where('name', 'like', '%' . $request->get('search') . '%')->whereIn('vendor_id', $withinVendor)->get();
+            // Vendor
+            $vendorData = Vendor::where('name', 'like', '%' . $request->get('search') . '%')->whereIn('id', $withinVendor)->get();
+        }
+
+        $data = ["category" => $category, "menu" => $menu, "vendor" => $vendorData];
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 }

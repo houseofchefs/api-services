@@ -6,9 +6,12 @@ use App\Constants\Constants;
 use App\Constants\HTTPStatusCode;
 use App\Http\Controllers\Controller;
 use App\Models\Address;
+use App\Models\Menu;
 use App\Models\OrderDetails;
 use App\Models\Orders;
 use App\Models\Payment;
+use App\Models\Vendor;
+use App\Models\VendorRating;
 use App\Traits\CommonQueries;
 use App\Traits\ResponseTraits;
 use App\Traits\ValidationTraits;
@@ -16,8 +19,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use PhpParser\Node\Expr\New_;
 use Razorpay\Api\Api;
-use Razorpay\Api\Order;
 
 class OrderController extends Controller
 {
@@ -191,5 +194,59 @@ class OrderController extends Controller
             $payment->save();
         }
         return $this->successResponse(true, $payment, $this->constant::UPDATED_SUCCESS);
+    }
+
+    public function getOrderReviewList($id)
+    {
+        $order = Orders::where('id', $id)->with(['details.menu', 'vendor'])->first();
+        return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
+    }
+
+    public function orderRating(Request $request, $id)
+    {
+        $auth = auth(Constants::CUSTOMER_GUARD)->user()->id;
+
+        if ($request->get('rating') > 0) {
+            $exist = VendorRating::where('customer_id', $auth)->first();
+            if ($exist) {
+                $vendorRating = $exist;
+            } else {
+                $vendorRating = new VendorRating();
+            }
+            // Vendor Rating Store
+            $vendorRating->vendor_id = $request->get('vendor_id');
+            $vendorRating->rating = $request->get('rating');
+            $vendorRating->customer_id = $auth;
+            $vendorRating->save();
+
+            // Sum and Count
+            $sum = VendorRating::where('vendor_id', $request->get('vendor_id'))->sum('rating');
+            $count = VendorRating::where('vendor_id', $request->get('vendor_id'))->count();
+
+            // Store Count and Rating in vendor
+            $vendor = Vendor::where('id', $request->get('vendor_id'))->first();
+            $vendor->rating = $sum / $count;
+            $vendor->ucount = $count;
+            $vendor->save();
+        }
+
+        // Create Rating for Menu
+        if (count($request->get('menu')) > 0) {
+            foreach ($request->get('menu') as $menu) {
+                $orderDetail = OrderDetails::where('id', $menu["details_id"])->first();
+                $orderDetail->ratings = $menu['rating'];
+                $orderDetail->save();
+
+                $sum = OrderDetails::whereNotNull('ratings')->where('menu_id', $menu['menu_id'])->sum('ratings');
+                $count = OrderDetails::whereNotNull('ratings')->where('menu_id', $menu['menu_id'])->count();
+                $menu = Menu::where('id', $menu['menu_id'])->first();
+                $menu->rating = $sum / $count;
+                $menu->ucount = $count;
+                $menu->save();
+            }
+        }
+        Orders::where('id', $id)->update(['isRated' => 1]);
+
+        return $this->successResponse(true, "", $this->constant::UPDATED_SUCCESS);
     }
 }

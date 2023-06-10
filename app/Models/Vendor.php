@@ -59,4 +59,8 @@ class Vendor extends Model
         return $this->belongsTo(Bank::class, 'bank_id');
     }
 
+    public function ratings()
+    {
+        return $this->hasMany(VendorRating::class);
+    }
 }
