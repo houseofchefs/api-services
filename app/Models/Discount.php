@@ -51,6 +51,14 @@ class Discount extends Model
     /**
      * @return BelongsTo
      */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Categories::class, 'category_id');
+    }
+
+    /**
+     * @return BelongsTo
+     */
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by', 'id');

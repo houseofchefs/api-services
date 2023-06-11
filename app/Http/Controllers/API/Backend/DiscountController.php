@@ -35,7 +35,7 @@ class DiscountController extends Controller
     public function index()
     {
         $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
-        $discount = Discount::with(['vendor', 'status', 'type'])->paginate(10);
+        $discount = Discount::with(['vendor', 'status', 'type'])->orderBy('id', 'desc')->paginate(10);
         // $discount = DB::table('discounts')
         // ->where([
         //     ['discounts.status', $status],
@@ -82,11 +82,15 @@ class DiscountController extends Controller
 
         // Create Discount
         $discount = Discount::create(array_merge(
-            $request->only(['name', 'description', 'image', 'vendor_id', 'category_id', "percentage", "expire_at", 'type']),
+            $request->only(['name', 'description', 'vendor_id', 'category_id', "percentage", "expire_at", 'type']),
             array(
                 'status' => $status
             )
         ));
+
+        $path = $this->uploadImage($request->file('image'), '/discount', $discount->id . '.' . $request->file('image')->getClientOriginalExtension());
+        $discount->image = $path;
+        $discount->save();
         return $this->successResponse(true, $discount, $this->constant::DISCOUNT_CREATED, $this->http::CREATED);
     }
 
@@ -96,7 +100,7 @@ class DiscountController extends Controller
     public function show(string $id)
     {
         $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
-        $discount = Discount::with(['vendor', 'status', 'type'])->where([['id', $id], ['status', $status]])->first();
+        $discount = Discount::with(['vendor', 'status', 'type', 'category'])->where([['id', $id], ['status', $status]])->first();
         return $this->successResponse(true, $discount, $this->constant::GET_SUCCESS, $this->http::OK);
     }
 
@@ -121,7 +125,10 @@ class DiscountController extends Controller
             $discount->vendor_id = $request->vendor_id;
             $discount->percentage = $request->percentage;
             $discount->description = $request->description;
-            $discount->image = $request->image;
+            if (gettype($request->get('image')) != 'string') {
+                $path = $this->uploadImage($request->file('image'), '/discount', $discount->id . '.' . $request->file('image')->getClientOriginalExtension());
+                $discount->image = $path;
+            }
             $discount->type = $request->type;
             $discount->status = $request->status;
             $discount->save();

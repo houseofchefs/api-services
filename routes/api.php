@@ -153,6 +153,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
         });
 
         Route::resource("discount", DiscountController::class)->except(['create', 'edit']);
+        Route::post("discount/{id}", [DiscountController::class, 'update']);
         Route::resource("cart", CartController::class)->except(['create', 'edit', 'show']);
         Route::delete('cart/delete/{id}', [CartController::class, 'customerCartRemove']);
         Route::prefix('category')->controller(CategoryController::class)->group(function () {
