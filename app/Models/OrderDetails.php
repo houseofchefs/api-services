@@ -23,11 +23,12 @@ class OrderDetails extends Model
         'ratings'
     ];
 
+    protected $table = "order_details";
     /**
      * @return BelongsTo
      */
     public function menu(): BelongsTo
     {
-        return $this->belongsTo(Menu::class, 'menu_id')->where('isApproved',1);
+        return $this->belongsTo(Menu::class, 'menu_id');
     }
 }

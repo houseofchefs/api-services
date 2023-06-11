@@ -96,7 +96,7 @@ class MenuController extends Controller
         DB::transaction(function () use ($request, $status, $type) {
             // Create Menu
             $price = $request->admin_price + $request->vendor_price;
-            $menu = Menu::create(array_merge($request->only(['name', 'category_id', 'vendor_id', 'vendor_price', 'admin_price', 'isPreOrder', 'isDaily', 'image', 'description', 'min_quantity']), array('status' => $status, 'type' => $type, 'price' => $price)));
+            $menu = Menu::create(array_merge($request->only(['name', 'category_id', 'vendor_id', 'vendor_price', 'menu_type', 'admin_price', 'isPreOrder', 'isDaily', 'description', 'min_quantity']), array('status' => $status, 'type' => $type, 'price' => $price)));
             if ($request->ingredient_id && count($request->ingredient_id) > 0) {
                 foreach ($request->ingredient_id as $ingredients) {
                     MenuHasIngredient::create(["menu_id" => $menu->id, "ingredient_id" => $ingredients]);
@@ -110,6 +110,10 @@ class MenuController extends Controller
                     }
                 }
             }
+
+            $path = $this->uploadImage($request->file('image'), 'vendor/' . $request->get('vendor_id') . '/menu', $menu->id . '.' . $request->file('image')->getClientOriginalExtension());
+            $menu->image = $path;
+            $menu->save();
         });
 
         return $this->successResponse(true, "", $this->constant::MENU_CREATED, $this->http::CREATED);
@@ -242,7 +246,7 @@ class MenuController extends Controller
             $data = Menu::where('id', $id)->first();
             if ($data->count() > 0) {
                 $price = $request->vendor_price + $request->admin_price;
-                Menu::where('id', $id)->update(array_merge($request->only(['name', 'category_id', 'vendor_id', 'vendor_price', 'admin_price', 'isPreOrder', 'isDaily', 'image', 'description', 'min_quantity', 'status', 'isApproved']), array('type' => $type, 'price' => $price)));
+                Menu::where('id', $id)->update(array_merge($request->only(['name', 'category_id', 'vendor_id', 'vendor_price', 'admin_price', 'isPreOrder', 'isDaily', 'description', 'min_quantity', 'status', 'isApproved']), array('type' => $type, 'price' => $price)));
             }
             MenuHasIngredient::where('menu_id', $id)->delete();
             MenuAvailableDay::where('menu_id', $id)->delete();
@@ -258,6 +262,11 @@ class MenuController extends Controller
                         MenuAvailableDay::create(["menu_id" => $id, "day" => $day]);
                     }
                 }
+            }
+            if (gettype($request->get('image')) != 'string') {
+                $path = $this->uploadImage($request->file('image'), 'vendor/' . $request->get('vendor_id') . '/menu', $data->id . '.' . $request->file('image')->getClientOriginalExtension());
+                $data->image = $path;
+                $data->save();
             }
         });
 

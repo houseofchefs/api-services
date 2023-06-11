@@ -60,7 +60,11 @@ class ProductController extends Controller
 
         $price = $request->vendor_price + $request->admin_price;
         // create
-        Menu::create(array_merge($request->only(["name", "description", "image", "vendor_id", "units", "vendor_price", "admin_price", 'category_id', 'menu_type', "isPreOrder", "isDaily", 'type', "min_quantity"]), array('status' => $modules, "price" => $price)));
+        $data = Menu::create(array_merge($request->only(["name", "description", "vendor_id", "units", "vendor_price", "admin_price", 'category_id', 'menu_type', "isPreOrder", "isDaily", 'type', "min_quantity"]), array('status' => $modules, "price" => $price)));
+
+        $path = $this->uploadImage($request->file('image'), 'vendor/' . $request->get('vendor_id') . '/product', $data->id . '.' . $request->file('image')->getClientOriginalExtension());
+        $data->image = $path;
+        $data->save();
 
         return $this->successResponse(true, "", $this->constant::CREATED_SUCCESS, $this->http::CREATED);
     }
@@ -88,7 +92,7 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $validator = Validator::make($request->all(), $this->createProductValidation());
+        $validator = Validator::make($request->all(), $this->updateProductValidation());
 
         // If validator fails it will #returns
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
@@ -99,12 +103,16 @@ class ProductController extends Controller
         if ($product) {
             $product->name = $request->name;
             $product->description = $request->description;
-            $product->image = $request->image;
             $product->units = $request->units;
             $product->vendor_price = $request->vendor_price;
             $product->admin_price = $request->admin_price;
             $product->price = $request->vendor_price + $request->admin_price;
             $product->status = $modules;
+            if (gettype($request->get('image')) != 'string') {
+                $path = $this->uploadImage($request->file('image'), 'vendor/' . $request->get('vendor_id') . '/product', $product->id . '.' . $request->file('image')->getClientOriginalExtension());
+                $product->image = $path;
+                $product->save();
+            }
             $product->save();
         }
 

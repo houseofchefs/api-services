@@ -21,7 +21,7 @@ class ImageController extends Controller
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         $path = $request->file('image')->store('images', 's3');
-        return $path;
+        return Storage::disk('s3')->url($path);
     }
 
     public function getImage()

@@ -57,23 +57,22 @@ class OrderController extends Controller
                 "status"        => $module,
                 "item_count"    => count($request->get('product_id')),
                 "order_no"      => "HOC0000" . $count + 1,
-                "customer_id"   => auth($this->constant::CUSTOMER_GUARD)->user()->id
+                "customer_id"   => $request->customer_id
             )
         ));
 
-        DB::transaction(function () use ($order, $request) {
-            // Order Details $store func
-            if (count($request->get('product_id')) > 0) {
-                foreach ($request->get('product_id') as $menu) {
-                    $details = [
-                        "menu_id"   => $menu["menu_id"],
-                        "quantity"  => $menu["quantity"],
-                        "order_id"  => $order->id
-                    ];
-                    OrderDetails::create($details);
-                }
+        // Order Details $store func
+        if (count($request->get('product_id')) > 0) {
+            $requestedMenu = $request->get('product_id');
+            foreach ($requestedMenu as $menu) {
+                $details = [
+                    "menu_id"   => $menu["menu_id"],
+                    "quantity"  => $menu["quantity"],
+                    "order_id"  => $order->id
+                ];
+                OrderDetails::create($details);
             }
-        });
+        }
         $paymentStatus = $this->getModuleIdBasedOnCode('PS01');
         $active = $this->getModuleIdBasedOnCode('CS01');
         if (!$request->cod) {
@@ -85,7 +84,7 @@ class OrderController extends Controller
                 'payment_capture'   => 1
             ]);
             $paymentData = [
-                "customer_id"           => auth($this->constant::CUSTOMER_GUARD)->user()->id,
+                "customer_id"           => $request->customer_id,
                 "order_id"              => $order->id,
                 "amount"                => $request->price,
                 "razorpay_order_id"     => $razorpay->id,
@@ -96,7 +95,7 @@ class OrderController extends Controller
             ];
         } else {
             $paymentData = [
-                "customer_id"           => auth($this->constant::CUSTOMER_GUARD)->user()->id,
+                "customer_id"           => $request->customer_id,
                 "order_id"              => $order->id,
                 "amount"                => $request->price,
                 "payment_method"        => "Cash on Delivery",

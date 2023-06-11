@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use App\Services\TwilioService;
+use Illuminate\Support\Facades\Storage;
 
 trait CommonQueries
 {
@@ -185,5 +186,11 @@ trait CommonQueries
 
         // Check if the distance is within the radius
         return $distance <= $radius;
+    }
+
+    public function uploadImage($image, $path, $imageName)
+    {
+        $path = $image->storeAs($path, $imageName, 's3');
+        return Storage::disk('s3')->url($path);
     }
 }

@@ -174,7 +174,7 @@ trait ValidationTraits
             'vendor_id'     => 'required',
             'category_id'   => 'required',
             'vendor_price'  => 'required',
-            'image'         => 'required',
+            'image'         => 'required|image|mimes:jpeg,png,jpg', //|max:2048
             'isDaily'       => 'required',
             'isPreOrder'    => 'required',
             'description'   => 'required',
@@ -218,6 +218,8 @@ trait ValidationTraits
     {
         return [
             "price"         => 'required',
+            "customer_id"   => 'required',
+            "vendor_id"     => 'required',
             "product_id"    => 'required',
             "address_id"    => 'required_unless:latitude,""',
             "longtitude"    => 'required_without:address_id',
@@ -382,7 +384,7 @@ trait ValidationTraits
             "name"          => 'required',
             "description"   => 'required',
             "vendor_id"     => "required",
-            "image"         => 'required',
+            'image'         => 'required|image|mimes:jpeg,png,jpg',
             "units"         => 'required',
             "vendor_price"  => 'required',
             "admin_price"   => 'required'

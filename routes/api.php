@@ -74,7 +74,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
         Route::prefix('menu')->controller(MenuController::class)->group(function () {
             Route::get('detail/{id}', 'menuDetails');
             Route::get('separate-detail/{id}', 'separateMenuDetails');
-            Route::put('update/{id}', 'updateMenu');
+            Route::post('update/{id}', 'updateMenu');
             ## Cook Accessible Route's
             Route::prefix('cook')->group(function () {
                 Route::get('list', 'menuListForCook');
@@ -165,6 +165,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
         Route::resource('module', ModuleController::class)->only(['index', 'show']);
         // Route::resource('cook', CookController::class)->only(['index', 'show']);
         Route::resource('product', ProductController::class);
+        Route::post('product/{id}', [ProductController::class, 'update']);
         Route::prefix('product')->controller(ProductController::class)->group(function () {
             Route::get('vendor/{id}', 'vendorBasedProduct');
         });
@@ -177,9 +178,11 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('/today-offer/menu', 'todayOfferMenus');
             Route::get('/slot-based/menu', 'slotBasedMenuItemsList');
             Route::get('/category-based/menu', 'slotAndCategoryMenuItemsList');
+            Route::get('/category-based-menu', 'categoryBasedMenu');
             Route::get('vendors', 'vendorList');
             Route::get('products', 'productList');
             Route::get('global-search', 'globalSearch');
+            Route::get('vendor/drop-down', 'vendorListDropdown');
         });
         Route::prefix('vendor')->controller(VendorController::class)->group(function () {
             Route::get('list', 'index');
@@ -201,6 +204,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('list', 'index');
             Route::get('edit/{id}', 'edit');
             Route::put('update/{id}', 'update');
+            Route::get('dashboard', 'dashboard');
         });
 
         Route::post('image/upload', [ImageController::class, 'uploadImage']);

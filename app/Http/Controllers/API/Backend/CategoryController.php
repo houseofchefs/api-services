@@ -145,7 +145,7 @@ class CategoryController extends Controller
     {
         # code...
         $data = [];
-        $categoryIds = Menu::where('vendor_id', 1)
+        $categoryIds = Menu::where('vendor_id', $id)
             ->distinct()
             ->pluck('category_id');
         if (count($categoryIds) > 0) {

@@ -167,7 +167,9 @@ class NearByController extends Controller
         $origin = $latitude . ',' . $longitude;
         $status = $this->getModuleIdBasedOnCode($this->constant::MENU_APPROVED);
 
-        $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)->where('menus.category_id', $request->categoryId)->paginate(10);
+        $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)->when($request->get('search') != null, function ($subQ) use ($request) {
+            $subQ->where('menus.name', $request->get('search'));
+        })->where('menus.category_id', $request->categoryId)->paginate(10);
         foreach ($data as $subData) {
             $destination = $subData->latitude . ',' . $subData->longitude;
             $google = $this->getDistance($origin, $destination);
@@ -267,5 +269,89 @@ class NearByController extends Controller
 
         $data = ["category" => $category, "menu" => $menu, "vendor" => $vendorData];
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+    }
+
+    /**
+     * Vendor List Based on Lat,Lng
+     */
+    public function vendorListDropdown(Request $request)
+    {
+        $vendors = Vendor::get();
+        $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
+        $withinVendor = [];
+
+        foreach ($vendors as $vendor) {
+            if ($this->checkWithinRadius($request->get('latitude'), $request->get('longitude'), $vendor->latitude, $vendor->longitude, $radius)) {
+                array_push($withinVendor, $vendor->id);
+            }
+        }
+
+        $vendor = Vendor::where('name', 'like', '%' . $request->get('search') . '%')->whereIn('id', $withinVendor)->get();
+        return $this->successResponse(true, $vendor, Constants::GET_SUCCESS);
+    }
+
+    /**
+     * Category Based menu
+     */
+    public function categoryBasedMenu(Request $request)
+    {
+        $latitude = $request->latitude;
+        $longitude = $request->longitude;
+        $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
+        $status = $this->getModuleIdBasedOnCode($this->constant::MENU_APPROVED);
+
+        $vendors = Vendor::get();
+        $withinVendor = [];
+
+        foreach ($vendors as $vendor) {
+            if ($this->calculateDistance($request->get('latitude'), $request->get('longitude'), $vendor->latitude, $vendor->longitude, $radius)) {
+                array_push($withinVendor, $vendor->id);
+            }
+        }
+
+        $data = DB::table('vendors')
+            ->selectRaw('menus.id as id, vendors.open_time as open_time,vendors.close_time as close_time,vendors.order_accept_time as order_accept_time, menus.price as price,vendors.id as vendor_id,menus.description as description,menus.name as name,menus.isDaily as isDaily,vendors.name as vendorName,categories.name as categoryName,menus.rating as rating, menus.ucount as ratingCount,menus.image as image,vendors.latitude as latitude,vendors.longitude as longitude,modules.module_name as type, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
+            ->join('menus', 'menus.vendor_id', '=', 'vendors.id')
+            ->join('categories', 'categories.id', '=', 'menus.category_id')
+            ->join('categories_has_slot', 'categories_has_slot.category_id', '=', 'menus.category_id')
+            ->join('modules', 'modules.id', '=', 'menus.type')
+            ->where('menus.isApproved', 1)
+            ->where('menus.menu_type', 'menu')
+            ->where('menus.status', $status)
+            ->whereIn('menus.vendor_id', $withinVendor)
+            ->when($request->get('search') != null, function ($subQ) use ($request) {
+                $subQ->where('menus.name', $request->get('search'));
+            })
+            ->distinct()->get();
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+    }
+
+    function calculateDistance($lat1, $lng1, $lat2, $lng2, $distanceThreshold)
+    {
+        // Radius of the Earth in kilometers
+        $earthRadius = 6371;
+
+        // Convert degrees to radians
+        $lat1 = deg2rad($lat1);
+        $lng1 = deg2rad($lng1);
+        $lat2 = deg2rad($lat2);
+        $lng2 = deg2rad($lng2);
+
+        // Calculate the differences between the coordinates
+        $deltaLat = $lat2 - $lat1;
+        $deltaLng = $lng2 - $lng1;
+
+        // Haversine formula
+        $a = sin($deltaLat / 2) * sin($deltaLat / 2) +
+            cos($lat1) * cos($lat2) *
+            sin($deltaLng / 2) * sin($deltaLng / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        // Calculate the distance in kilometers
+        $distance = $earthRadius * $c;
+
+        // Check if the distance is within the threshold
+        return $distance <= $distanceThreshold;
     }
 }
