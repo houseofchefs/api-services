@@ -169,7 +169,9 @@ class NearByController extends Controller
 
         $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)->when($request->get('search') != null, function ($subQ) use ($request) {
             $subQ->where('menus.name', $request->get('search'));
-        })->where('menus.category_id', $request->categoryId)->paginate(10);
+        })->when($request->get('categoryId') != 0, function ($q) use ($request) {
+            $q->where('menus.category_id', $request->categoryId);
+        })->paginate(10);
         foreach ($data as $subData) {
             $destination = $subData->latitude . ',' . $subData->longitude;
             $google = $this->getDistance($origin, $destination);
@@ -326,7 +328,8 @@ class NearByController extends Controller
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 
-    public function vendorAndCategoryBasedMenu(Request $request, $id) {
+    public function vendorAndCategoryBasedMenu(Request $request, $id)
+    {
         $latitude = $request->latitude;
         $longitude = $request->longitude;
         $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
