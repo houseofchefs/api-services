@@ -190,6 +190,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('edit/{id}', 'edit');
             Route::get('/dropdown', 'dropdownVendor');
             Route::put('edit/{id}', 'updateVendor');
+            Route::get('{id}', 'customerDetails');
         });
         Route::prefix('staff')->controller(StaffController::class)->group(function () {
             Route::get('vendor-based/list/{id}', 'index');

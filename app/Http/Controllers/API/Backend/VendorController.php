@@ -12,6 +12,7 @@ use App\Constants\HTTPStatusCode;
 use App\Models\Address;
 use App\Models\Bank;
 use App\Models\Vendor;
+use App\Models\Wishlist;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
@@ -74,5 +75,15 @@ class VendorController extends Controller
         });
 
         return $this->successResponse(true, "", $this->constant::CREATED_SUCCESS, 201);
+    }
+
+    public function customerDetails(String $id)
+    {
+        # code...
+        $auth = auth(Constants::CUSTOMER_GUARD)->user()->id;
+        $wishlist = Wishlist::where('customer_id', $auth)->where('type', 'vendor')->where('menu_id', $id)->first();
+        $data = Vendor::with(['status', 'address', 'bank.type'])->where('id', $id)->first();
+        $data['wishlist'] = $wishlist ? true : false;
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
 }

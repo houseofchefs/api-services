@@ -116,9 +116,11 @@ class OrderController extends Controller
      * @api orderList
      * @route #middleware admin only
      */
-    public function orderList()
+    public function orderList(Request $request)
     {
-        $order = Orders::with(['details.menu', 'status', 'payments.status', 'customers', 'vendor'])->orderBy('id', 'desc')->paginate(10);
+        $order = Orders::when($request->get('type') == "reviews", function ($q) {
+            $q->where('isRated', 1);
+        })->with(['details.menu', 'status', 'payments.status', 'customers', 'vendor'])->orderBy('id', 'desc')->paginate(10);
         return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
     }
 
