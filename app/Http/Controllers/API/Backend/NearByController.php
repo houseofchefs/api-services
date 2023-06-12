@@ -361,6 +361,9 @@ class NearByController extends Controller
             ->when($request->get('categoryId') != 0, function ($q) use ($request) {
                 $q->where('menus.category_id', $request->categoryId);
             })
+            ->when($request->slot != 0, function ($q) use ($request) {
+                return $q->where('categories_has_slot.slot_id', '=', $request->slot);
+            })
             ->when($request->get('search') != null, function ($subQ) use ($request) {
                 $subQ->where('menus.name', $request->get('search'));
             })
