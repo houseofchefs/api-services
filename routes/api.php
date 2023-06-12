@@ -180,6 +180,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('/slot-based/menu', 'slotBasedMenuItemsList');
             Route::get('/category-based/menu', 'slotAndCategoryMenuItemsList');
             Route::get('/category-based-menu', 'categoryBasedMenu');
+            Route::get('/vendor-category-based-menu/{id}', 'vendorAndCategoryBasedMenu');
             Route::get('vendors', 'vendorList');
             Route::get('products', 'productList');
             Route::get('global-search', 'globalSearch');
