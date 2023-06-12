@@ -320,6 +320,9 @@ class NearByController extends Controller
             ->where('menus.isApproved', 1)
             ->where('menus.menu_type', 'menu')
             ->where('menus.status', $status)
+            ->when($request->get('categoryId') != 0, function ($q) use ($request) {
+                $q->where('menus.category_id', $request->categoryId);
+            })
             ->whereIn('menus.vendor_id', $withinVendor)
             ->when($request->get('search') != null, function ($subQ) use ($request) {
                 $subQ->where('menus.name', $request->get('search'));
@@ -355,6 +358,9 @@ class NearByController extends Controller
             ->where('menus.status', $status)
             ->where('vendors.id', $id)
             ->whereIn('menus.vendor_id', $withinVendor)
+            ->when($request->get('categoryId') != 0, function ($q) use ($request) {
+                $q->where('menus.category_id', $request->categoryId);
+            })
             ->when($request->get('search') != null, function ($subQ) use ($request) {
                 $subQ->where('menus.name', $request->get('search'));
             })
