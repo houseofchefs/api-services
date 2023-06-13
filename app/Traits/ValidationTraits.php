@@ -179,7 +179,8 @@ trait ValidationTraits
             'isPreOrder'    => 'required',
             'description'   => 'required',
             'min_quantity'  => 'required',
-            'admin_price'   => 'required'
+            'admin_price'   => 'required',
+            "days"           => 'required_if:isDaily,==,0'
         ];
     }
 
@@ -201,7 +202,8 @@ trait ValidationTraits
             'min_quantity'  => 'required',
             'status'        => 'required',
             'admin_price'   => 'required',
-            "ingredient_id" => 'required'
+            "ingredient_id" => 'required',
+            "days"           => 'required_if:isDaily,==,0'
         ];
     }
 
