@@ -69,6 +69,9 @@ class NearByController extends Controller
         $status = $this->getModuleIdBasedOnCode($this->constant::MENU_APPROVED);
         $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description;
         $data =  $this->slotBasedMenus($latitude, $longitude, $radius, 0, $status)
+            ->when($request->vendorId != 0, function ($q) use($request) {
+                $q->where('menus.vendor_id',$request->vendorId);
+            })
             ->when($request->slot_id != 0, function ($q) use ($request) {
                 $q->where('categories_has_slot.slot_id', $request->slot_id);
             })

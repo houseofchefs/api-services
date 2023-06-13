@@ -200,7 +200,8 @@ trait ValidationTraits
             'description'   => 'required',
             'min_quantity'  => 'required',
             'status'        => 'required',
-            'admin_price'   => 'required'
+            'admin_price'   => 'required',
+            "ingredient_id" => 'required'
         ];
     }
 
