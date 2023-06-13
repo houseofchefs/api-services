@@ -97,7 +97,7 @@ class MenuController extends Controller
             // Create Menu
             $price = $request->admin_price + $request->vendor_price;
             $menu = Menu::create(array_merge($request->only(['name', 'category_id', 'vendor_id', 'vendor_price', 'menu_type', 'admin_price', 'isPreOrder', 'isDaily', 'description', 'min_quantity']), array('status' => $status, 'type' => $type, 'price' => $price)));
-            if ($request->ingredient_id && count($request->ingredient_id) > 0) {
+            if ($request->ingredient_id != null && count($request->ingredient_id) > 0) {
                 foreach ($request->ingredient_id as $ingredients) {
                     MenuHasIngredient::create(["menu_id" => $menu->id, "ingredient_id" => $ingredients]);
                 }
@@ -162,6 +162,7 @@ class MenuController extends Controller
                 ->join('vendors', 'menus.vendor_id', '=', 'vendors.id')
                 ->select('menus.id as menu_id', 'menus.name as name', 'menus.description as description', 'menus.image as image', 'menus.price as price', 'menus.rating as rating', 'menus.ucount as ratingCount', 'vendors.name as vendorName')
                 ->where('wishlists.customer_id', '=', $id)
+                ->where('wishlists.type', $request->type)
                 ->paginate(10);
         } elseif ($request->type == "product") {
             $wishlist = DB::table('wishlists')
@@ -169,12 +170,14 @@ class MenuController extends Controller
                 ->join('vendors', 'products.vendor_id', '=', 'vendors.id')
                 ->select('products.id as product_id', 'products.name as name', 'products.description as description', 'products.image as image', 'products.price as price', 'products.rating as rating', 'products.ucount as ratingCount', 'vendors.name as vendorName')
                 ->where('wishlists.customer_id', '=', $id)
+                ->where('wishlists.type', $request->type)
                 ->paginate(10);
         } elseif ($request->type == "vendor") {
             $wishlist = DB::table('wishlists')
                 ->join('vendors', 'vendors.id', '=', 'wishlists.menu_id')
                 ->select('vendors.id as id', 'vendors.name as name',  'vendors.rating as rating', 'vendors.ucount as ratingCount', 'vendors.latitude as latitude', 'vendors.longitude as longitude')
                 ->where('wishlists.customer_id', '=', $id)
+                ->where('wishlists.type', $request->type)
                 ->paginate(10);
         }
         return $wishlist;
@@ -250,7 +253,7 @@ class MenuController extends Controller
             }
             MenuHasIngredient::where('menu_id', $id)->delete();
             MenuAvailableDay::where('menu_id', $id)->delete();
-            if ($request->ingredient_id && count($request->ingredient_id) > 0) {
+            if ($request->ingredient_id != null && count($request->ingredient_id) > 0) {
                 foreach ($request->ingredient_id as $ingredients) {
                     MenuHasIngredient::create(["menu_id" => $id, "ingredient_id" => $ingredients]);
                 }
