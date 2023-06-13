@@ -33,7 +33,7 @@ trait ValidationTraits
     protected function adminSignUpValidator(): array
     {
         return [
-            'mobile'    => 'required|min:8|max:16|unique:users, mobile',
+            'mobile'    => 'required|min:8|max:16|unique:users,mobile',
             "name"      => 'required|max:30',
             "password"  => 'required',
             "role"      => 'required',
