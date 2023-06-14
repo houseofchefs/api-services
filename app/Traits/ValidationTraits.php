@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use DaysValidationRule;
 use Illuminate\Validation\Rule;
 
 trait ValidationTraits
@@ -180,7 +181,7 @@ trait ValidationTraits
             'description'   => 'required',
             'min_quantity'  => 'required',
             'admin_price'   => 'required',
-            "days"           => 'required_if:isDaily,==,0'
+            "days"           => [new DaysValidationRule($this->input('isPreOrder'), $this->input('isDaily'))],
         ];
     }
 
@@ -203,7 +204,7 @@ trait ValidationTraits
             'status'        => 'required',
             'admin_price'   => 'required',
             "ingredient_id" => 'required',
-            "days"           => 'required_if:isDaily,==,0'
+            "days"           => [new DaysValidationRule($this->input('isPreOrder'), $this->input('isDaily'))],
         ];
     }
 
