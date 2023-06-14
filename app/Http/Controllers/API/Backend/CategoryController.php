@@ -137,10 +137,12 @@ class CategoryController extends Controller
     public function masterCategory()
     {
         # code...
+        $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
         $data =  DB::table('categories')
             ->join('users', 'categories.created_by', '=', 'users.id')
             ->join('modules', 'categories.status', '=', 'modules.id')
             ->where('vendor_id', 0)
+            ->where("categories.status", $status)
             ->select('categories.name', 'users.name as created', 'modules.module_name as status', 'categories.id', 'categories.image', 'categories.vendor_id as vendor_id')
             ->addSelect(DB::raw('(SELECT GROUP_CONCAT(modules.module_name SEPARATOR ", ") FROM categories_has_slot
                                 JOIN modules ON categories_has_slot.slot_id = modules.id
