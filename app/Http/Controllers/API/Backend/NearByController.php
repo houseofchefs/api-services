@@ -69,8 +69,8 @@ class NearByController extends Controller
         $status = $this->getModuleIdBasedOnCode($this->constant::MENU_APPROVED);
         $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description;
         $data =  $this->slotBasedMenus($latitude, $longitude, $radius, 0, $status)
-            ->when($request->vendorId != 0, function ($q) use($request) {
-                $q->where('menus.vendor_id',$request->vendorId);
+            ->when($request->vendorId != 0, function ($q) use ($request) {
+                $q->where('menus.vendor_id', $request->vendorId);
             })
             ->when($request->slot_id != 0, function ($q) use ($request) {
                 $q->where('categories_has_slot.slot_id', $request->slot_id);
@@ -197,9 +197,14 @@ class NearByController extends Controller
 
         $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
         $data = DB::table('vendors')
-            ->selectRaw('vendors.id as id,vendors.name as name, vendors.latitude as latitude, vendors.longitude as longitude, vendors.rating as rating, vendors.ucount as count,IF(wishlists.id IS NULL, false, true) AS wishlist, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
+            ->selectRaw('vendors.id as id,vendors.name as name, vendors.image as image, vendors.latitude as latitude, vendors.longitude as longitude, vendors.rating as rating, vendors.ucount as count,IF(wishlists.id IS NULL, false, true) AS wishlist, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
             ->whereRaw('( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) <= ?', [$latitude, $longitude, $latitude, $radius])
             ->where('status', $status)
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('menus')
+                    ->whereRaw('menus.vendor_id = vendors.id');
+            })
             ->leftJoin('wishlists', function ($join) use ($customerId) {
                 $join->on('wishlists.menu_id', '=', 'vendors.id')
                     ->where('wishlists.customer_id', '=', $customerId)

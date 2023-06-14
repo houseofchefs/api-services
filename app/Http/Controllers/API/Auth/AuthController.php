@@ -370,6 +370,10 @@ class AuthController extends Controller
             $addressDetail->user_id = $vendor->id;
             $bankDetail->save();
             $addressDetail->save();
+
+            $path = $this->uploadImage($request->file('image'), 'vendor/' . $vendor->id . '/profile', $vendor->id . '.' . $request->file('image')->getClientOriginalExtension());
+            $vendor->image = $path;
+            $vendor->save();
         });
 
         return $this->successResponse(true, "", $this->constant::CREATED_SUCCESS, 201);

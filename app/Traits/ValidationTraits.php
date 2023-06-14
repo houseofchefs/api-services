@@ -140,7 +140,7 @@ trait ValidationTraits
     {
         return [
             'name'          => 'required|max:30',
-            'image'         => 'required',
+            'image'         => 'required|image|mimes:jpeg,png,jpg',
             'slot'          => 'required',
             'vendor_id'     => 'required'
         ];
@@ -159,14 +159,15 @@ trait ValidationTraits
         return [
             'name'          => 'required|max:30',
             'slot'          => 'required',
-            'status'        => 'required'
+            'status'        => 'required',
+            'image'         => 'required',
         ];
     }
 
     /**
      * @menu create body validation
      */
-    protected function menuValidator(): array
+    protected function menuValidator($request): array
     {
         return [
             'name'          => 'required|max:50',
@@ -180,24 +181,18 @@ trait ValidationTraits
             'description'   => 'required',
             'min_quantity'  => 'required',
             'admin_price'   => 'required',
-            "days"          => [
-                'required',
-                function ($attribute, $value, $fail) {
-                    $isPreOrder = $this->input('isPreOrder');
-                    $isDaily = $this->input('isDaily');
-
-                    if ($isPreOrder == 1 && $isDaily == 0 && empty($value)) {
-                        $fail('The days field is required');
-                    }
-                },
-            ],
+            "days" => [
+                Rule::when(function () use ($request) {
+                    return $request->input('isPreOrder') == 1 && $request->input('isDaily') == 0;
+                }, ['required']),
+            ]
         ];
     }
 
     /**
      * @menu update body validation
      */
-    protected function updateMenuValidator(): array
+    protected function updateMenuValidator($request): array
     {
         return [
             'name'          => 'required|max:30',
@@ -213,17 +208,11 @@ trait ValidationTraits
             'status'        => 'required',
             'admin_price'   => 'required',
             "ingredient_id" => 'required',
-            "days"          => [
-                'required',
-                function ($attribute, $value, $fail) {
-                    $isPreOrder = $this->input('isPreOrder');
-                    $isDaily = $this->input('isDaily');
-
-                    if ($isPreOrder == 1 && $isDaily == 0 && empty($value)) {
-                        $fail('The days field is required');
-                    }
-                },
-            ],
+            "days" => [
+                Rule::when(function () use ($request) {
+                    return $request->input('isPreOrder') == 1 && $request->input('isDaily') == 0;
+                }, ['required']),
+            ]
         ];
     }
 
@@ -337,6 +326,7 @@ trait ValidationTraits
             'name'              => 'required|max:30',
             'mobile'            => 'required|unique:vendors,mobile',
             'email'             => 'required|unique:vendors,email',
+            'image'             => 'required|image|mimes:jpeg,png,jpg',
             'door_no'           => 'required',
             'account_number'    => 'required|max:16',
             'account_type'      => 'required',
@@ -361,6 +351,7 @@ trait ValidationTraits
             'email'             => ['required', Rule::unique('vendors')->ignore($id)],
             'door_no'           => 'required',
             'account_number'    => 'required|max:16',
+            'image'             => 'required',
             'account_type'      => 'required',
             'bank_name'         => 'required',
             'holder_name'       => 'required',

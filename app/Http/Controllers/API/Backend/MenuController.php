@@ -82,7 +82,7 @@ class MenuController extends Controller
     public function menuCreateForCook(Request $request)
     {
         // $id = auth()->guard($this->constant::COOK_GUARD)->user()->id;
-        $validator = Validator::make($request->all(), $this->menuValidator());
+        $validator = Validator::make($request->all(), $this->menuValidator($request));
 
         // If validator fails it will #returns
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
@@ -236,7 +236,7 @@ class MenuController extends Controller
     public function updateMenu(Request $request, $id)
     {
         // $id = auth()->guard($this->constant::COOK_GUARD)->user()->id;
-        $validator = Validator::make($request->all(), $this->updateMenuValidator());
+        $validator = Validator::make($request->all(), $this->updateMenuValidator($request));
 
         // If validator fails it will #returns
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);

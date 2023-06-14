@@ -161,7 +161,8 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('master', 'masterCategory');
             Route::get('vendor-based/{id}', 'vendorBasedCategory');
         });
-        Route::resource("categories", CategoryController::class)->only(['index', 'store', 'update', 'edit']);
+        Route::resource("categories", CategoryController::class)->only(['index', 'store', 'edit']);
+        Route::post('categories/{id}', [CategoryController::class, 'update']);
         // Route::resource("sub-category", SubCategoryController::class)->only(['index', 'store', 'update'])->middleware('role:super-admin|admin');
         Route::resource('module', ModuleController::class)->only(['index', 'show']);
         // Route::resource('cook', CookController::class)->only(['index', 'show']);
@@ -190,7 +191,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('list', 'index');
             Route::get('edit/{id}', 'edit');
             Route::get('/dropdown', 'dropdownVendor');
-            Route::put('edit/{id}', 'updateVendor');
+            Route::post('edit/{id}', 'updateVendor');
             Route::get('{id}', 'customerDetails');
         });
         Route::prefix('staff')->controller(StaffController::class)->group(function () {

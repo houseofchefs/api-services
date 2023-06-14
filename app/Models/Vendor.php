@@ -24,6 +24,7 @@ class Vendor extends Model
         'address_id',
         'bank_id',
         'open_time',
+        'image',
         'close_time',
         'order_accept_time',
         'latitude',

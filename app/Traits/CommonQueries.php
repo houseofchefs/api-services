@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Constants\Constants;
 use App\Models\Modules;
 use App\Models\VerificationCode;
 use Carbon\Carbon;
@@ -107,6 +108,10 @@ trait CommonQueries
     protected function menuListQuery($id = null)
     {
         $customerId = auth('customer')->user()->id;
+        // Status
+        $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $approved = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
+
         return DB::table('menus')
             ->join('modules as m1', 'menus.status', '=', 'm1.id')
             ->join('modules as m2', 'menus.type', '=', 'm2.id')
@@ -117,6 +122,8 @@ trait CommonQueries
                     ->where('wishlists.type', '=', 'menu');
             })
             ->where('menus.menu_type', 'menu')
+            ->where('menus.status', $approved)
+            ->where('categories.status', $status)
             ->selectRaw(
                 'menus.id as id,
                 menus.rating as rating,
@@ -143,6 +150,7 @@ trait CommonQueries
         $radius = $rad; // in kilometers
         $slotId = $slot;
         $customerId = auth('customer')->user()->id;
+        $active = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
 
         return DB::table('vendors')
             ->selectRaw('menus.id as id, vendors.open_time as open_time,vendors.close_time as close_time,vendors.order_accept_time as order_accept_time, menus.price as price,vendors.id as vendor_id,menus.description as description,menus.name as name,menus.isDaily as isDaily,vendors.name as vendorName,categories.name as categoryName,menus.rating as rating, menus.ucount as ratingCount,menus.image as image,vendors.latitude as latitude,vendors.longitude as longitude,IF(wishlists.id IS NULL, false, true) AS wishlist,modules.module_name as type, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
@@ -152,6 +160,7 @@ trait CommonQueries
             ->join('modules', 'modules.id', '=', 'menus.type')
             ->where('menus.isApproved', 1)
             ->where('menus.menu_type', 'menu')
+            ->where('categories.status', $active)
             ->when(!$slotId == 0, function ($q) use ($slotId) {
                 return $q->where('categories_has_slot.slot_id', '=', $slotId);
             })

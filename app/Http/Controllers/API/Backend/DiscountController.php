@@ -99,8 +99,7 @@ class DiscountController extends Controller
      */
     public function show(string $id)
     {
-        $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
-        $discount = Discount::with(['vendor', 'status', 'type', 'category'])->where([['id', $id], ['status', $status]])->first();
+        $discount = Discount::with(['vendor', 'status', 'type', 'category'])->where([['id', $id]])->first();
         return $this->successResponse(true, $discount, $this->constant::GET_SUCCESS, $this->http::OK);
     }
 
@@ -130,6 +129,7 @@ class DiscountController extends Controller
                 $discount->image = $path;
             }
             $discount->type = $request->type;
+            $discount->expire_at = $request->expire_at;
             $discount->status = $request->status;
             $discount->save();
             return $this->successResponse(true, $discount, $this->constant::DISCOUNT_UPDATED, $this->http::OK);

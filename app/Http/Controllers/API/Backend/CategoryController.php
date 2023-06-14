@@ -68,6 +68,9 @@ class CategoryController extends Controller
             foreach ($request->slot as $data) {
                 CategoryHasSlot::create(["category_id" => $category->id, "slot_id" => $data]);
             }
+            $path = $this->uploadImage($request->file('image'), 'category', $category->id . '.' . $request->file('image')->getClientOriginalExtension());
+            $category->image = $path;
+            $category->save();
         });
         return $this->successResponse(true, "", $this->constant::CATEGORY_CREATED, $this->http::CREATED);
     }
@@ -104,11 +107,15 @@ class CategoryController extends Controller
             $category->name = $request->name;
             $category->status = $request->status;
             $category->vendor_id = $request->vendor_id;
-            $category->save();
             CategoryHasSlot::where('category_id', $id)->delete();
             foreach ($request->slot as $data) {
                 CategoryHasSlot::create(["category_id" => $category->id, "slot_id" => $data]);
             }
+            if (gettype($request->get('image')) != 'string') {
+                $path = $this->uploadImage($request->file('image'), 'category', $category->id . '.' . $request->file('image')->getClientOriginalExtension());
+                $category->image = $path;
+            }
+            $category->save();
         });
         return $this->successResponse(true, "", $this->constant::CATEGORY_UPDATED);
     }
