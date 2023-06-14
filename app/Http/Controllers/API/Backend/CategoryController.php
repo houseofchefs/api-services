@@ -160,4 +160,11 @@ class CategoryController extends Controller
         }
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
+
+    public function activeCategory()
+    {
+        $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
+        $data = $this->categoriesCommonQuery()->where("categories.status", $status)->paginate(10);
+        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+    }
 }

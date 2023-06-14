@@ -160,6 +160,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('vendor', 'vendorDropDown');
             Route::get('master', 'masterCategory');
             Route::get('vendor-based/{id}', 'vendorBasedCategory');
+            Route::get('list', 'activeCategory');
         });
         Route::resource("categories", CategoryController::class)->only(['index', 'store', 'edit']);
         Route::post('categories/{id}', [CategoryController::class, 'update']);
