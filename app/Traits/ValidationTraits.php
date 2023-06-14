@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Traits;
+
 use Illuminate\Validation\Rule;
 
 trait ValidationTraits
@@ -179,7 +180,17 @@ trait ValidationTraits
             'description'   => 'required',
             'min_quantity'  => 'required',
             'admin_price'   => 'required',
-            "days"           => 'required_if:isPreOrder,1|required_if:isDaily,1',
+            "days"          => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    $isPreOrder = $this->input('isPreOrder');
+                    $isDaily = $this->input('isDaily');
+
+                    if ($isPreOrder == 1 && $isDaily == 0 && empty($value)) {
+                        $fail('The days field is required');
+                    }
+                },
+            ],
         ];
     }
 
@@ -202,7 +213,17 @@ trait ValidationTraits
             'status'        => 'required',
             'admin_price'   => 'required',
             "ingredient_id" => 'required',
-            "days"           => 'required_if:isPreOrder,1|required_if:isDaily,1',
+            "days"          => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    $isPreOrder = $this->input('isPreOrder');
+                    $isDaily = $this->input('isDaily');
+
+                    if ($isPreOrder == 1 && $isDaily == 0 && empty($value)) {
+                        $fail('The days field is required');
+                    }
+                },
+            ],
         ];
     }
 
