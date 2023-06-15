@@ -137,6 +137,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
             #Address Create & Update
             Route::post('address', 'address');
             Route::put('address/{id}', 'updateAddress');
+            Route::delete('address/{id}', 'deleteAddress');
             #Bank Details Create & Update
             Route::post('bank', 'bank');
             Route::put('bank/{id}', 'updateBank');

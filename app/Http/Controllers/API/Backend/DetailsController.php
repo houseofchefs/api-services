@@ -173,9 +173,15 @@ class DetailsController extends Controller
         $client = new Client();
         $place = $request->place_id;
         $key = env('GOOGLE_MAPS_API_KEY');
-        $url = "https://maps.googleapis.com/maps/api/geocode/json?place_id=".$place."&key=" . $key;
+        $url = "https://maps.googleapis.com/maps/api/geocode/json?place_id=" . $place . "&key=" . $key;
         $response = $client->get($url);
         $data = json_decode($response->getBody());
         return response()->json($data);
+    }
+
+    public function deleteAddress($id)
+    {
+        Address::where('id', $id)->delete();
+        return $this->successResponse(true, "", $this->constant::GET_SUCCESS);
     }
 }
