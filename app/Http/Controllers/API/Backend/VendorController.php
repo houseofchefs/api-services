@@ -73,7 +73,7 @@ class VendorController extends Controller
             Address::where('id', $request->address_id)->update(array_merge($address, array('guard' => "cook", 'user_id' => $id)));
             Vendor::where('id', $id)->update(array_merge($vendors, array('bank_id' => $request->bank_id, 'address_id' => $request->address_id, 'created_by' => 1)));
 
-            if (gettype($request->get('image')) != 'string') {
+            if (gettype($request->get('image')) != 'string' && $request->file('image') != null) {
                 $path = $this->uploadImage($request->file('image'), 'vendor/' . $id . '/profile', $id . '.' . $request->file('image')->getClientOriginalExtension());
                 $vendor = Vendor::where('id', $id)->first();
                 $vendor->image = $path;

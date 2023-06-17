@@ -140,7 +140,7 @@ trait ValidationTraits
     {
         return [
             'name'          => 'required|max:30',
-            'image'         => 'required|image|mimes:jpeg,png,jpg',
+            'image'         => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'slot'          => 'required',
             'vendor_id'     => 'required'
         ];
@@ -160,7 +160,7 @@ trait ValidationTraits
             'name'          => 'required|max:30',
             'slot'          => 'required',
             'status'        => 'required',
-            'image'         => 'required',
+            'image'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ];
     }
 
@@ -174,13 +174,12 @@ trait ValidationTraits
             'type'          => 'required',
             'vendor_id'     => 'required',
             'category_id'   => 'required',
-            'vendor_price'  => 'required',
-            'image'         => 'required|image|mimes:jpeg,png,jpg', //|max:2048
+            'price'         => 'required',
+            'image'         => 'required|image|mimes:jpeg,png,jpg|max:2048', //|max:2048
             'isDaily'       => 'required',
             'isPreOrder'    => 'required',
             'description'   => 'required',
             'min_quantity'  => 'required',
-            'admin_price'   => 'required',
             "days" => [
                 Rule::when(function () use ($request) {
                     return $request->input('isPreOrder') == 1 && $request->input('isDaily') == 0;
@@ -199,14 +198,14 @@ trait ValidationTraits
             'type'          => 'required',
             'vendor_id'     => 'required',
             'category_id'   => 'required',
-            'vendor_price'  => 'required',
             'image'         => 'required',
             'isDaily'       => 'required',
             'isPreOrder'    => 'required',
+            'image'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'description'   => 'required',
+            'price'         => 'required',
             'min_quantity'  => 'required',
             'status'        => 'required',
-            'admin_price'   => 'required',
             "ingredient_id" => 'required',
             "days" => [
                 Rule::when(function () use ($request) {
@@ -272,7 +271,7 @@ trait ValidationTraits
         return [
             "name"          => 'required',
             "description"   => 'required',
-            "image"         => 'required',
+            'image'         => 'required|image|mimes:jpeg,png,jpg|max:2048',
             "type"          => 'required',
             "category_id"   => 'required',
             "vendor_id"     => 'required',
@@ -286,7 +285,7 @@ trait ValidationTraits
         return [
             "name"          => 'required',
             "description"   => 'required',
-            "image"         => 'required',
+            'image'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             "type"          => 'required',
             "status"        => 'required'
         ];
@@ -326,7 +325,7 @@ trait ValidationTraits
             'name'              => 'required|max:30',
             'mobile'            => 'required|unique:vendors,mobile',
             'email'             => 'required|unique:vendors,email',
-            'image'             => 'required|image|mimes:jpeg,png,jpg',
+            'image'             => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'door_no'           => 'required',
             'account_number'    => 'required|max:16',
             'account_type'      => 'required',
@@ -351,7 +350,7 @@ trait ValidationTraits
             'email'             => ['required', Rule::unique('vendors')->ignore($id)],
             'door_no'           => 'required',
             'account_number'    => 'required|max:16',
-            'image'             => 'required',
+            'image'             => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'account_type'      => 'required',
             'bank_name'         => 'required',
             'holder_name'       => 'required',
@@ -398,10 +397,9 @@ trait ValidationTraits
             "name"          => 'required',
             "description"   => 'required',
             "vendor_id"     => "required",
-            'image'         => 'required|image|mimes:jpeg,png,jpg',
+            'image'         => 'required|image|mimes:jpeg,png,jpg|max:2048',
             "units"         => 'required',
-            "vendor_price"  => 'required',
-            "admin_price"   => 'required'
+            "price"         => 'required'
         ];
     }
 
@@ -413,12 +411,11 @@ trait ValidationTraits
         return [
             "name"          => 'required',
             "description"   => 'required',
-            "image"         => 'required',
+            'image'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             "units"         => 'required',
             "price"         => 'required',
             "status"        => 'required',
-            "vendor_price"  => 'required',
-            "admin_price"   => 'required'
+            "price"         => 'required'
         ];
     }
 

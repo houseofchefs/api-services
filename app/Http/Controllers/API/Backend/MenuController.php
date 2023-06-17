@@ -95,8 +95,10 @@ class MenuController extends Controller
 
         DB::transaction(function () use ($request, $status, $type) {
             // Create Menu
-            $price = $request->admin_price + $request->vendor_price;
-            $menu = Menu::create(array_merge($request->only(['name', 'category_id', 'vendor_id', 'vendor_price', 'menu_type', 'admin_price', 'isPreOrder', 'isDaily', 'description', 'min_quantity']), array('status' => $status, 'type' => $type, 'price' => $price)));
+            $percentage = $this->getModuleBasedOnCode("MT12");
+            $adminPrice = $request->price * ($percentage->description / 100);
+            $vendorPrice = $request->price - $adminPrice;
+            $menu = Menu::create(array_merge($request->only(['name', 'category_id', 'vendor_id', 'price', 'menu_type', 'isPreOrder', 'isDaily', 'description', 'min_quantity']), array('status' => $status, 'type' => $type, 'vendor_price' => $vendorPrice, 'admin_price' => $adminPrice)));
             if ($request->ingredient_id != null && count($request->ingredient_id) > 0) {
                 foreach ($request->ingredient_id as $ingredients) {
                     MenuHasIngredient::create(["menu_id" => $menu->id, "ingredient_id" => $ingredients]);
@@ -204,6 +206,7 @@ class MenuController extends Controller
             menus.image as image,
             menus.description as description,
             menus.price,
+            menus.admin_price,
             menus.status as mstatus,
             menus.min_quantity as min_quantity,
             m1.module_name as status,
@@ -248,8 +251,10 @@ class MenuController extends Controller
         DB::transaction(function () use ($request, $type, $id) {
             $data = Menu::where('id', $id)->first();
             if ($data->count() > 0) {
-                $price = $request->vendor_price + $request->admin_price;
-                Menu::where('id', $id)->update(array_merge($request->only(['name', 'category_id', 'vendor_id', 'vendor_price', 'admin_price', 'isPreOrder', 'isDaily', 'description', 'min_quantity', 'status', 'isApproved']), array('type' => $type, 'price' => $price)));
+                $percentage = $this->getModuleBasedOnCode("MT12");
+                $adminPrice = $request->price * ($percentage->description / 100);
+                $vendorPrice = $request->price - $adminPrice;
+                Menu::where('id', $id)->update(array_merge($request->only(['name', 'category_id', 'vendor_id', 'price', 'isPreOrder', 'isDaily', 'description', 'min_quantity', 'status', 'isApproved']), array('type' => $type, 'admin_price' => $adminPrice, 'vendor_price' => $vendorPrice)));
             }
             MenuHasIngredient::where('menu_id', $id)->delete();
             MenuAvailableDay::where('menu_id', $id)->delete();
@@ -266,7 +271,7 @@ class MenuController extends Controller
                     }
                 }
             }
-            if (gettype($request->get('image')) != 'string') {
+            if (gettype($request->get('image')) != 'string' && $request->file('image') != null) {
                 $path = $this->uploadImage($request->file('image'), 'vendor/' . $request->get('vendor_id') . '/menu', $data->id . '.' . $request->file('image')->getClientOriginalExtension());
                 $data->image = $path;
                 $data->save();

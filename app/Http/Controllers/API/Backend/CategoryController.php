@@ -111,7 +111,7 @@ class CategoryController extends Controller
             foreach ($request->slot as $data) {
                 CategoryHasSlot::create(["category_id" => $category->id, "slot_id" => $data]);
             }
-            if (gettype($request->get('image')) != 'string') {
+            if (gettype($request->get('image')) != 'string' && $request->file('image') != null) {
                 $path = $this->uploadImage($request->file('image'), 'category', $category->id . '.' . $request->file('image')->getClientOriginalExtension());
                 $category->image = $path;
             }

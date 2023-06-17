@@ -19,6 +19,7 @@ use App\Models\Riders;
 use App\Models\Staff;
 use App\Models\Vendor;
 use App\Models\VerificationCode;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
@@ -363,9 +364,11 @@ class AuthController extends Controller
             $address = $request->only(['door_no', 'lanmark', 'address_line', 'latitude', 'longitude', 'pincode', 'place_id']);
             $bank = $request->only(['bank_name', 'account_number', 'account_type', 'ifsc_code', 'holder_name']);
 
+            $currentDate = Carbon::now();
+            $subscription = $currentDate->addDays(365);
             $bankDetail = Bank::create(array_merge($bank, array('guard' => "cook")));
             $addressDetail = Address::create(array_merge($address, array('guard' => "cook")));
-            $vendor = Vendor::create(array_merge($vendors, array('bank_id' => $bankDetail->id, 'address_id' => $addressDetail->id, 'created_by' => 1)));
+            $vendor = Vendor::create(array_merge($vendors, array('bank_id' => $bankDetail->id, 'address_id' => $addressDetail->id, 'created_by' => 1, 'subscription_expire_at' => $subscription)));
             $bankDetail->user_id = $vendor->id;
             $addressDetail->user_id = $vendor->id;
             $bankDetail->save();

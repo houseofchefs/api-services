@@ -151,6 +151,7 @@ trait CommonQueries
         $slotId = $slot;
         $customerId = auth('customer')->user()->id;
         $active = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
+        $currentTime = Carbon::now()->format('H:i:s');
 
         return DB::table('vendors')
             ->selectRaw('menus.id as id, vendors.open_time as open_time,vendors.close_time as close_time,vendors.order_accept_time as order_accept_time, menus.price as price,vendors.id as vendor_id,menus.description as description,menus.name as name,menus.isDaily as isDaily,vendors.name as vendorName,categories.name as categoryName,menus.rating as rating, menus.ucount as ratingCount,menus.image as image,vendors.latitude as latitude,vendors.longitude as longitude,IF(wishlists.id IS NULL, false, true) AS wishlist,modules.module_name as type, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
@@ -170,6 +171,7 @@ trait CommonQueries
                     ->where('wishlists.type', '=', 'menu');
             })
             ->where('menus.status', $status)
+            ->where('vendors.order_accept_time', '>', $currentTime)
             ->whereRaw('( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) <= ?', [$latitude, $longitude, $latitude, $radius])
             ->distinct();
     }

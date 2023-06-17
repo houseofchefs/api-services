@@ -58,9 +58,11 @@ class ProductController extends Controller
         // Product #status
         $modules = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
 
-        $price = $request->vendor_price + $request->admin_price;
         // create
-        $data = Menu::create(array_merge($request->only(["name", "description", "vendor_id", "units", "vendor_price", "admin_price", 'category_id', 'menu_type', "isPreOrder", "isDaily", 'type', "min_quantity"]), array('status' => $modules, "price" => $price)));
+        $percentage = $this->getModuleBasedOnCode("MT12");
+        $adminPrice = $request->price * ($percentage->description / 100);
+        $vendorPrice = $request->price - $adminPrice;
+        $data = Menu::create(array_merge($request->only(["name", "description", "vendor_id", "units", "price", 'category_id', 'menu_type', "isPreOrder", "isDaily", 'type', "min_quantity"]), array('status' => $modules, 'admin_price' => $adminPrice, 'vendor_price' => $vendorPrice)));
 
         $path = $this->uploadImage($request->file('image'), 'vendor/' . $request->get('vendor_id') . '/product', $data->id . '.' . $request->file('image')->getClientOriginalExtension());
         $data->image = $path;
@@ -100,15 +102,18 @@ class ProductController extends Controller
         // Product #status
         $modules = $this->getModuleIdBasedOnCode($request->status);
         $product = Menu::where('id', $id)->first();
+        $percentage = $this->getModuleBasedOnCode("MT12");
+        $adminPrice = $request->price * ($percentage->description / 100);
+        $vendorPrice = $request->price - $adminPrice;
         if ($product) {
             $product->name = $request->name;
             $product->description = $request->description;
             $product->units = $request->units;
-            $product->vendor_price = $request->vendor_price;
-            $product->admin_price = $request->admin_price;
-            $product->price = $request->vendor_price + $request->admin_price;
+            $product->admin_price = $adminPrice;
+            $product->vendor_price = $vendorPrice;
+            $product->price = $request->price;
             $product->status = $modules;
-            if (gettype($request->get('image')) != 'string') {
+            if (gettype($request->get('image')) != 'string' && $request->file('image') != null) {
                 $path = $this->uploadImage($request->file('image'), 'vendor/' . $request->get('vendor_id') . '/product', $product->id . '.' . $request->file('image')->getClientOriginalExtension());
                 $product->image = $path;
                 $product->save();

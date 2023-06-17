@@ -124,7 +124,7 @@ class DiscountController extends Controller
             $discount->vendor_id = $request->vendor_id;
             $discount->percentage = $request->percentage;
             $discount->description = $request->description;
-            if (gettype($request->get('image')) != 'string') {
+            if (gettype($request->get('image')) != 'string' && $request->file('image') != null) {
                 $path = $this->uploadImage($request->file('image'), '/discount', $discount->id . '.' . $request->file('image')->getClientOriginalExtension());
                 $discount->image = $path;
             }
