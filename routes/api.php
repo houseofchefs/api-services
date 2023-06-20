@@ -205,6 +205,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('list', 'index');
             Route::get('edit/{id}', 'edit');
             Route::put('update/{id}', 'update');
+            Route::post('profile/{id}', 'updateProfile');
         });
         Route::prefix('admin')->controller(AdminController::class)->group(function () {
             Route::get('list', 'index');

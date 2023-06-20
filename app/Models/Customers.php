@@ -20,6 +20,7 @@ class Customers extends Authenticatable implements JWTSubject
         'dob',
         'mobile',
         'password',
+        'image',
         'address_id',
         'gender',
         'points',

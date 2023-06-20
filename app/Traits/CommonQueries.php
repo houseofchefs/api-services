@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use App\Constants\Constants;
 use App\Models\Modules;
+use App\Models\Vendor;
 use App\Models\VerificationCode;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -203,5 +204,48 @@ trait CommonQueries
     {
         $path = $image->storeAs($path, $imageName, 's3');
         return Storage::disk('s3')->url($path);
+    }
+
+    public function vendorWithInTheRadius($latitude, $longitude, $radius)
+    {
+        $vendors = Vendor::get();
+        $withinVendor = [];
+
+        foreach ($vendors as $vendor) {
+            if ($this->calculateDistance($latitude, $longitude, $vendor->latitude, $vendor->longitude, $radius)) {
+                array_push($withinVendor, $vendor->id);
+            }
+        }
+
+        return $withinVendor;
+    }
+
+    public function calculateDistance($lat1, $lng1, $lat2, $lng2, $distanceThreshold)
+    {
+        // Radius of the Earth in kilometers
+        $earthRadius = 6371;
+
+        // Convert degrees to radians
+        $lat1 = deg2rad($lat1);
+        $lng1 = deg2rad($lng1);
+        $lat2 = deg2rad($lat2);
+        $lng2 = deg2rad($lng2);
+
+        // Calculate the differences between the coordinates
+        $deltaLat = $lat2 - $lat1;
+        $deltaLng = $lng2 - $lng1;
+
+        // Haversine formula
+        $a = sin($deltaLat / 2) * sin($deltaLat / 2) +
+            cos($lat1) * cos($lat2) *
+            sin($deltaLng / 2) * sin($deltaLng / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        // Calculate the distance in kilometers
+        $distance = $earthRadius * $c;
+
+        // Check if the distance is within the threshold
+        return $distance <= $distanceThreshold;
     }
 }

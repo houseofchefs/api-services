@@ -7,10 +7,8 @@ use App\Traits\ResponseTraits;
 use App\Traits\ValidationTraits;
 use App\Traits\CommonQueries;
 use App\Constants\Constants;
-use App\Constants\HTTPStatusCode;
 use App\Models\Categories;
 use App\Models\Menu;
-use App\Models\MenuAvailableDay;
 use App\Models\Vendor;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
@@ -19,15 +17,6 @@ use Illuminate\Support\Facades\DB;
 
 class NearByController extends Controller
 {
-    private $constant;
-
-    private $http;
-
-    public function __construct()
-    {
-        $this->constant = new Constants();
-        $this->http = new HTTPStatusCode();
-    }
 
     use ResponseTraits, ValidationTraits, CommonQueries;
 
@@ -66,8 +55,8 @@ class NearByController extends Controller
         $latitude = $request->latitude;
         $longitude = $request->longitude;
         $origin = $latitude . ',' . $longitude;
-        $status = $this->getModuleIdBasedOnCode($this->constant::MENU_APPROVED);
-        $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description;
+        $status = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
+        $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description;
         $data =  $this->slotBasedMenus($latitude, $longitude, $radius, 0, $status)
             ->when($request->vendorId != 0, function ($q) use ($request) {
                 $q->where('menus.vendor_id', $request->vendorId);
@@ -88,7 +77,7 @@ class NearByController extends Controller
                     ->toArray();
             }
         }
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     /**
@@ -98,10 +87,10 @@ class NearByController extends Controller
     {
         $latitude = $request->latitude;
         $longitude = $request->longitude;
-        $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
+        $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
         $origin = $latitude . ',' . $longitude;
-        $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
-        $approved = $this->getModuleIdBasedOnCode($this->constant::MENU_APPROVED);
+        $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
+        $approved = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
         $customerId = auth('customer')->user()->id;
 
         $today = Carbon::now();
@@ -135,7 +124,7 @@ class NearByController extends Controller
             $subData->time = $google['duration']['text'];
         }
 
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     /**
@@ -146,8 +135,8 @@ class NearByController extends Controller
         $latitude = $request->latitude;
         $longitude = $request->longitude;
         $origin = $latitude . ',' . $longitude;
-        $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
-        $status = $this->getModuleIdBasedOnCode($this->constant::MENU_APPROVED);
+        $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
+        $status = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
 
         $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)->paginate(10);
         foreach ($data as $subData) {
@@ -156,7 +145,7 @@ class NearByController extends Controller
             $subData->distance = $google['distance']['text'];
             $subData->time = $google['duration']['text'];
         }
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     /**
@@ -166,9 +155,9 @@ class NearByController extends Controller
     {
         $latitude = $request->latitude;
         $longitude = $request->longitude;
-        $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
+        $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
         $origin = $latitude . ',' . $longitude;
-        $status = $this->getModuleIdBasedOnCode($this->constant::MENU_APPROVED);
+        $status = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
 
         $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)->when($request->get('search') != null, function ($subQ) use ($request) {
             $subQ->where('menus.name', $request->get('search'));
@@ -181,7 +170,7 @@ class NearByController extends Controller
             $subData->distance = $google['distance']['text'];
             $subData->time = $google['duration']['text'];
         }
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     /**
@@ -192,10 +181,10 @@ class NearByController extends Controller
         $latitude = $request->latitude;
         $longitude = $request->longitude;
         $origin = $latitude . ',' . $longitude;
-        $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
+        $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
         $customerId = auth('customer')->user()->id;
+        $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
 
-        $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
         $data = DB::table('vendors')
             ->selectRaw('vendors.id as id,vendors.name as name, vendors.image as image, vendors.latitude as latitude, vendors.longitude as longitude, vendors.rating as rating, vendors.ucount as count,IF(wishlists.id IS NULL, false, true) AS wishlist, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
             ->whereRaw('( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) <= ?', [$latitude, $longitude, $latitude, $radius])
@@ -217,7 +206,7 @@ class NearByController extends Controller
             $subData->distance = $google['distance']['text'];
             $subData->time = $google['duration']['text'];
         }
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     /**
@@ -229,9 +218,9 @@ class NearByController extends Controller
         $longitude = $request->longitude;
         $origin = $latitude . ',' . $longitude;
         $customerId = auth('customer')->user()->id;
-        $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
+        $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
 
-        $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
         $data = DB::table('menus')
             ->selectRaw('vendors.id as vendor_id,menus.description as description,menus.name as name,menus.id as id,menus.price as price,menus.image as image,vendors.name as vendor_name,menus.units as units,vendors.latitude as latitude, vendors.longitude as longitude, vendors.rating as rating, vendors.ucount as count,IF(wishlists.id IS NULL, false, true) AS wishlist, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
             ->join('vendors', 'menus.vendor_id', '=', 'vendors.id')
@@ -250,7 +239,7 @@ class NearByController extends Controller
             $subData->distance = $google['distance']['text'];
             $subData->time = $google['duration']['text'];
         }
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     /**
@@ -258,15 +247,17 @@ class NearByController extends Controller
      */
     public function globalSearch(Request $request)
     {
-        $vendors = Vendor::get();
-        $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
-        $withinVendor = [];
+        $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
+        $withinVendor = $this->vendorWithInTheRadius($request->get('latitude'), $request->get('longitude'), $radius);
+        $customerId = auth(Constants::CUSTOMER_GUARD)->user()->id;
+        $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
+        $origin = $request->get('latitude') . ',' . $request->get('longitude');
 
-        foreach ($vendors as $vendor) {
-            if ($this->checkWithinRadius($request->get('latitude'), $request->get('longitude'), $vendor->latitude, $vendor->longitude, $radius)) {
-                array_push($withinVendor, $vendor->id);
-            }
-        }
+        // foreach ($vendors as $vendor) {
+        //     if ($this->checkWithinRadius($request->get('latitude'), $request->get('longitude'), $vendor->latitude, $vendor->longitude, $radius)) {
+        //         array_push($withinVendor, $vendor->id);
+        //     }
+        // }
 
         if ($request->get('search') != null && $request->get('search') != "") {
             // Category
@@ -275,10 +266,34 @@ class NearByController extends Controller
             $menu = Menu::where('name', 'like', '%' . $request->get('search') . '%')->whereIn('vendor_id', $withinVendor)->get();
             // Vendor
             $vendorData = Vendor::where('name', 'like', '%' . $request->get('search') . '%')->whereIn('id', $withinVendor)->get();
+            $vendorData = DB::table('vendors')
+                ->selectRaw('vendors.id as id,vendors.name as name, vendors.image as image, vendors.latitude as latitude, vendors.longitude as longitude, vendors.rating as rating, vendors.ucount as count,IF(wishlists.id IS NULL, false, true) AS wishlist')
+                ->whereIn('vendors.id', $withinVendor)
+                ->where('status', $status)
+                ->whereExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('menus')
+                        ->whereRaw('menus.vendor_id = vendors.id');
+                })
+                ->leftJoin('wishlists', function ($join) use ($customerId) {
+                    $join->on('wishlists.menu_id', '=', 'vendors.id')
+                        ->where('wishlists.customer_id', '=', $customerId)
+                        ->where('wishlists.type', '=', 'vendor');
+                })
+                ->get();
+        }
+
+        if (count($vendorData) > 0) {
+            foreach ($vendorData as $subData) {
+                $destination = $subData->latitude . ',' . $subData->longitude;
+                $google = $this->getDistance($origin, $destination);
+                $subData->distance = $google['distance']['text'];
+                $subData->time = $google['duration']['text'];
+            }
         }
 
         $data = ["category" => $category, "menu" => $menu, "vendor" => $vendorData];
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     /**
@@ -287,7 +302,7 @@ class NearByController extends Controller
     public function vendorListDropdown(Request $request)
     {
         $vendors = Vendor::get();
-        $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
+        $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
         $withinVendor = [];
 
         foreach ($vendors as $vendor) {
@@ -307,8 +322,8 @@ class NearByController extends Controller
     {
         $latitude = $request->latitude;
         $longitude = $request->longitude;
-        $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
-        $status = $this->getModuleIdBasedOnCode($this->constant::MENU_APPROVED);
+        $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
+        $status = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
 
         $vendors = Vendor::get();
         $withinVendor = [];
@@ -336,24 +351,17 @@ class NearByController extends Controller
                 $subQ->where('menus.name', $request->get('search'));
             })
             ->distinct()->get();
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     public function vendorAndCategoryBasedMenu(Request $request, $id)
     {
         $latitude = $request->latitude;
         $longitude = $request->longitude;
-        $radius = $this->getModuleBasedOnCode($this->constant::RADIUS)->description; // in kilometers
-        $status = $this->getModuleIdBasedOnCode($this->constant::MENU_APPROVED);
+        $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
+        $status = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
 
-        $vendors = Vendor::get();
-        $withinVendor = [];
-
-        foreach ($vendors as $vendor) {
-            if ($this->calculateDistance($request->get('latitude'), $request->get('longitude'), $vendor->latitude, $vendor->longitude, $radius)) {
-                array_push($withinVendor, $vendor->id);
-            }
-        }
+        $withinVendor = $this->vendorWithInTheRadius($latitude, $longitude, $radius);
 
         $data = DB::table('vendors')
             ->selectRaw('menus.id as id, vendors.open_time as open_time,vendors.close_time as close_time,vendors.order_accept_time as order_accept_time, menus.price as price,vendors.id as vendor_id,menus.description as description,menus.name as name,menus.isDaily as isDaily,vendors.name as vendorName,categories.name as categoryName,menus.rating as rating, menus.ucount as ratingCount,menus.image as image,vendors.latitude as latitude,vendors.longitude as longitude,modules.module_name as type, ( 6371 * acos( cos( radians(?) ) * cos( radians( vendors.latitude ) ) * cos( radians( vendors.longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( vendors.latitude ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
@@ -376,35 +384,6 @@ class NearByController extends Controller
                 $subQ->where('menus.name', $request->get('search'));
             })
             ->distinct()->get();
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
-    }
-
-    function calculateDistance($lat1, $lng1, $lat2, $lng2, $distanceThreshold)
-    {
-        // Radius of the Earth in kilometers
-        $earthRadius = 6371;
-
-        // Convert degrees to radians
-        $lat1 = deg2rad($lat1);
-        $lng1 = deg2rad($lng1);
-        $lat2 = deg2rad($lat2);
-        $lng2 = deg2rad($lng2);
-
-        // Calculate the differences between the coordinates
-        $deltaLat = $lat2 - $lat1;
-        $deltaLng = $lng2 - $lng1;
-
-        // Haversine formula
-        $a = sin($deltaLat / 2) * sin($deltaLat / 2) +
-            cos($lat1) * cos($lat2) *
-            sin($deltaLng / 2) * sin($deltaLng / 2);
-
-        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-        // Calculate the distance in kilometers
-        $distance = $earthRadius * $c;
-
-        // Check if the distance is within the threshold
-        return $distance <= $distanceThreshold;
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 }

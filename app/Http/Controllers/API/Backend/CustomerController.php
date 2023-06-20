@@ -32,7 +32,7 @@ class CustomerController extends Controller
     public function edit($id)
     {
         # code...
-        $customer = DB::table('customers')->select('id', 'name', 'mobile', 'dob', 'email')->where('id', $id)->first();
+        $customer = DB::table('customers')->select('id', 'name', 'mobile', 'dob', 'email', 'points', 'referral_code')->where('id', $id)->first();
         return $this->successResponse(true, $customer, Constants::GET_SUCCESS);
     }
 
@@ -43,8 +43,27 @@ class CustomerController extends Controller
         // If validator fails it will #returns
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
-        Customers::where('id', $id)->update($request->only([ 'name', 'mobile', 'dob', 'email']));
+        Customers::where('id', $id)->update($request->only(['name', 'mobile', 'dob', 'email']));
 
+        return $this->successResponse(true, "", Constants::UPDATED_SUCCESS);
+    }
+
+    public function updateProfile(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            "image"     => 'required|image|mimes:jpeg,png,jpg|max:2048'
+        ]);
+
+        // If validator fails it will #returns
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
+
+        $customer = Customers::where('id', $id)->first();
+
+        if ($customer) {
+            $path = $this->uploadImage($request->file('image'), 'customer', $id . '.' . $request->file('image')->getClientOriginalExtension());
+            $customer->image = $path;
+            $customer->save();
+        }
         return $this->successResponse(true, "", Constants::UPDATED_SUCCESS);
     }
 }
