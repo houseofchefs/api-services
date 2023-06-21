@@ -11,7 +11,6 @@ use App\Models\Categories;
 use App\Models\Menu;
 use App\Models\Vendor;
 use Carbon\Carbon;
-use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -21,31 +20,6 @@ class NearByController extends Controller
     use ResponseTraits, ValidationTraits, CommonQueries;
 
     ## Service Code Started
-
-    /**
-     * Google Matrix API for Finding the Distance
-     */
-    public function getDistance($origin, $destination)
-    {
-        $apiKey = env('GOOGLE_MAPS_API_KEY'); // Replace with your API key
-
-        $client = new Client();
-        $response = $client->request('GET', 'https://maps.googleapis.com/maps/api/distancematrix/json', [
-            'query' => [
-                'origins' => $origin,
-                'destinations' => $destination,
-                'key' => $apiKey,
-            ],
-        ]);
-
-        $data = json_decode($response->getBody(), true);
-        if (count($data['rows']) > 0 && count($data['rows'][0]['elements']) > 0) {
-            $row = $data['rows'][0];
-            return $row['elements'][0];
-        }
-
-        // Do something with the response data
-    }
 
     /**
      * Pre-Booking List and Distance Calculate

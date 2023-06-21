@@ -165,9 +165,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
         });
         Route::resource("categories", CategoryController::class)->only(['index', 'store', 'edit']);
         Route::post('categories/{id}', [CategoryController::class, 'update']);
-        // Route::resource("sub-category", SubCategoryController::class)->only(['index', 'store', 'update'])->middleware('role:super-admin|admin');
         Route::resource('module', ModuleController::class)->only(['index', 'show']);
-        // Route::resource('cook', CookController::class)->only(['index', 'show']);
         Route::resource('product', ProductController::class);
         Route::post('product/{id}', [ProductController::class, 'update']);
         Route::prefix('product')->controller(ProductController::class)->group(function () {
@@ -195,6 +193,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('/dropdown', 'dropdownVendor');
             Route::post('edit/{id}', 'updateVendor');
             Route::get('{id}', 'customerDetails');
+            Route::get('detail/{id}', 'details');
         });
         Route::prefix('staff')->controller(StaffController::class)->group(function () {
             Route::get('vendor-based/list/{id}', 'index');
@@ -213,8 +212,5 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::put('update/{id}', 'update');
             Route::get('dashboard', 'dashboard');
         });
-
-        Route::post('image/upload', [ImageController::class, 'uploadImage']);
-        Route::get('image/upload', [ImageController::class, 'getImage']);
     });
 });

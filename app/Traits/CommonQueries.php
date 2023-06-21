@@ -7,7 +7,7 @@ use App\Models\Modules;
 use App\Models\Vendor;
 use App\Models\VerificationCode;
 use Carbon\Carbon;
-use Illuminate\Http\JsonResponse;
+use GuzzleHttp\Client;
 use Illuminate\Support\Facades\DB;
 use App\Services\TwilioService;
 use Illuminate\Support\Facades\Storage;
@@ -247,5 +247,28 @@ trait CommonQueries
 
         // Check if the distance is within the threshold
         return $distance <= $distanceThreshold;
+    }
+
+    /**
+     * Google Matrix API for Finding the Distance
+     */
+    public function getDistance($origin, $destination)
+    {
+        $apiKey = env('GOOGLE_MAPS_API_KEY'); // Replace with your API key
+
+        $client = new Client();
+        $response = $client->request('GET', 'https://maps.googleapis.com/maps/api/distancematrix/json', [
+            'query' => [
+                'origins' => $origin,
+                'destinations' => $destination,
+                'key' => $apiKey,
+            ],
+        ]);
+
+        $data = json_decode($response->getBody(), true);
+        if (count($data['rows']) > 0 && count($data['rows'][0]['elements']) > 0) {
+            $row = $data['rows'][0];
+            return $row['elements'][0];
+        }
     }
 }

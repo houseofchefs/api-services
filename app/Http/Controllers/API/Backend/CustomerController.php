@@ -32,7 +32,7 @@ class CustomerController extends Controller
     public function edit($id)
     {
         # code...
-        $customer = DB::table('customers')->select('id', 'name', 'mobile', 'dob', 'email', 'points', 'referral_code')->where('id', $id)->first();
+        $customer = DB::table('customers')->select('id', 'name', 'mobile', 'dob', 'email', 'points', 'referral_code', 'image')->where('id', $id)->first();
         return $this->successResponse(true, $customer, Constants::GET_SUCCESS);
     }
 

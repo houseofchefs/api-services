@@ -24,15 +24,6 @@ use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
-    private $constant;
-
-    private $http;
-
-    public function __construct()
-    {
-        $this->constant = new Constants();
-        $this->http = new HTTPStatusCode();
-    }
 
     use ResponseTraits, ValidationTraits, CommonQueries;
     /**
@@ -43,15 +34,15 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), $this->adminSignUpValidator());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         // Create Admin User
-        $user = User::create(array_merge($request->only([$this->constant::NAME, $this->constant::MOBILE, $this->constant::PASSWORD, $this->constant::EMAIL])));
+        $user = User::create(array_merge($request->only([Constants::NAME, Constants::MOBILE, Constants::PASSWORD, Constants::EMAIL])));
 
         // assign the role to the created user #roles
         $user->assignRole($request->role);
 
-        return $this->successResponse(true, "", $this->constant::CREATED_SUCCESS, 201);
+        return $this->successResponse(true, "", Constants::CREATED_SUCCESS, 201);
     }
 
     /**
@@ -62,20 +53,20 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), $this->adminLoginVerify());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         $crendentials = $request->only('email', 'password');
         $token = auth()->attempt($crendentials);
 
         // Token Generation Failed it will #returns
-        if ($token == null) return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($token == null) return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         // Logged User Details Framing
         $user = User::with('roles')->where('email', $request->get('email'))->first();
-        if ($user) return $this->tokenResponse(true, $user, $token, $this->constant::LOGIN_SUCCESS, 200);
+        if ($user) return $this->tokenResponse(true, $user, $token, Constants::LOGIN_SUCCESS, 200);
         else {
             auth()->logout();
-            return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
+            return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
         }
     }
 
@@ -88,14 +79,14 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), $this->adminOtpValidator());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         // Existing OTP Check
-        if ($this->existingOtp($request->get($this->constant::MOBILE), $this->constant::ADMIN_GUARD)) return $this->errorResponse(false, "", $this->constant::OTP_ALREADY_SENT, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($this->existingOtp($request->get(Constants::MOBILE), Constants::ADMIN_GUARD)) return $this->errorResponse(false, "", Constants::OTP_ALREADY_SENT, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         // send otp common function
-        $this->sendOtp($request->get($this->constant::MOBILE), $this->constant::ADMIN_GUARD);
-        return $this->successResponse(true, "", $this->constant::OTP_SENT_SUCCESS, 200);
+        $this->sendOtp($request->get(Constants::MOBILE), Constants::ADMIN_GUARD);
+        return $this->successResponse(true, "", Constants::OTP_SENT_SUCCESS, 200);
     }
 
     /**
@@ -105,23 +96,23 @@ class AuthController extends Controller
     public function adminVerifyOTP(Request $request)
     {
         # code...
-        $verified = $this->verifyOtp($request->get($this->constant::MOBILE), $request->get($this->constant::OTP), $this->constant::ADMIN_GUARD);
+        $verified = $this->verifyOtp($request->get(Constants::MOBILE), $request->get(Constants::OTP), Constants::ADMIN_GUARD);
         if ($verified) {
-            $crendentials = array_merge($request->only([$this->constant::MOBILE]), array($this->constant::PASSWORD => env($this->constant::ADMIN_PASSWORD)));
+            $crendentials = array_merge($request->only([Constants::MOBILE]), array(Constants::PASSWORD => env(Constants::ADMIN_PASSWORD)));
             $token = auth()->attempt($crendentials);
 
             // Token Generation Failed it will #returns
-            if (!$token) return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
+            if (!$token) return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
             // Logged User Details Framing
-            $user = User::role([$this->constant::SUPER_ADMIN_ROLE, $this->constant::ADMIN])->with('roles')->where('mobile', $request->get($this->constant::MOBILE))->first();
-            if ($user) return $this->tokenResponse(true, $user, $token, $this->constant::LOGIN_SUCCESS, 200);
+            $user = User::role([Constants::SUPER_ADMIN_ROLE, Constants::ADMIN])->with('roles')->where('mobile', $request->get(Constants::MOBILE))->first();
+            if ($user) return $this->tokenResponse(true, $user, $token, Constants::LOGIN_SUCCESS, 200);
             else {
                 auth()->logout();
-                return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
+                return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
             }
         }
-        return $this->errorResponse(false, "", $this->constant::OTP_EXPIRED, $this->http::UNPROCESS_ENTITY_CODE);
+        return $this->errorResponse(false, "", Constants::OTP_EXPIRED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
     }
 
     ###### Cook Authentication Section of Code Started
@@ -134,20 +125,20 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), $this->cookSignupValidator());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         //Modules #id
-        $module = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $module = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
 
         // Create Cook User
-        $user = Cook::create(array_merge($request->only([$this->constant::NAME, $this->constant::MOBILE]), array($this->constant::PASSWORD => env($this->constant::COOK_PASSWORD), $this->constant::STATUS => $module)));
+        $user = Cook::create(array_merge($request->only([Constants::NAME, Constants::MOBILE]), array(Constants::PASSWORD => env(Constants::COOK_PASSWORD), Constants::STATUS => $module)));
 
         // assign the role to the created user #roles
-        $user->assignRole($this->constant::COOK_ROLE);
+        $user->assignRole(Constants::COOK_ROLE);
 
         // send otp common function
-        $this->sendOtp($request->get($this->constant::MOBILE), $this->constant::COOK_GUARD);
-        return $this->successResponse(true, "", $this->constant::OTP_SENT_SUCCESS, 200);
+        $this->sendOtp($request->get(Constants::MOBILE), Constants::COOK_GUARD);
+        return $this->successResponse(true, "", Constants::OTP_SENT_SUCCESS, 200);
     }
 
     /**
@@ -159,12 +150,12 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), $this->cookOtpValidator());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
-        if ($this->existingOtp($request->get($this->constant::MOBILE), $this->constant::COOK_GUARD)) return $this->errorResponse(false, "", $this->constant::OTP_ALREADY_SENT, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
+        if ($this->existingOtp($request->get(Constants::MOBILE), Constants::COOK_GUARD)) return $this->errorResponse(false, "", Constants::OTP_ALREADY_SENT, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         // send otp common function
-        $this->sendOtp($request->get($this->constant::MOBILE), $this->constant::COOK_GUARD);
-        return $this->successResponse(true, "", $this->constant::OTP_SENT_SUCCESS, 200);
+        $this->sendOtp($request->get(Constants::MOBILE), Constants::COOK_GUARD);
+        return $this->successResponse(true, "", Constants::OTP_SENT_SUCCESS, 200);
     }
     /**
      * @param $request
@@ -173,23 +164,23 @@ class AuthController extends Controller
     public function cookVerifyOTP(Request $request)
     {
         # code...
-        $verified = $this->verifyOtp($request->get($this->constant::MOBILE), $request->get($this->constant::OTP), $this->constant::COOK_GUARD);
+        $verified = $this->verifyOtp($request->get(Constants::MOBILE), $request->get(Constants::OTP), Constants::COOK_GUARD);
         if ($verified) {
-            $crendentials = array_merge($request->only([$this->constant::MOBILE]), array($this->constant::PASSWORD => env($this->constant::COOK_PASSWORD)));
-            $token = auth()->guard($this->constant::COOK_GUARD)->attempt($crendentials);
+            $crendentials = array_merge($request->only([Constants::MOBILE]), array(Constants::PASSWORD => env(Constants::COOK_PASSWORD)));
+            $token = auth()->guard(Constants::COOK_GUARD)->attempt($crendentials);
 
             // Token Generation Failed it will #returns
-            if (!$token) return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
+            if (!$token) return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
             // Logged User Details Framing
-            $user = Cook::role($this->constant::COOK_ROLE)->with('roles')->where('mobile', $request->get($this->constant::MOBILE))->first();
-            if ($user) return $this->tokenResponse(true, $user, $token, $this->constant::LOGIN_SUCCESS, 200);
+            $user = Cook::role(Constants::COOK_ROLE)->with('roles')->where('mobile', $request->get(Constants::MOBILE))->first();
+            if ($user) return $this->tokenResponse(true, $user, $token, Constants::LOGIN_SUCCESS, 200);
             else {
                 auth()->logout();
-                return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
+                return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
             }
         }
-        return $this->errorResponse(false, "", $this->constant::OTP_EXPIRED, $this->http::UNPROCESS_ENTITY_CODE);
+        return $this->errorResponse(false, "", Constants::OTP_EXPIRED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
     }
 
     ###### Customer Authentication Section of Code Started
@@ -202,12 +193,12 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), $this->customerSignupValidator());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         Customers::create(array_merge($request->only(['name', 'dob', 'email', 'mobile']), [
             'referral_code' => $this->generateRandomString(),
             'signup_with'   => $request->get('referral'),
-            'password'      => env($this->constant::CUSTOMER_PASSWORD)
+            'password'      => env(Constants::CUSTOMER_PASSWORD)
         ]));
 
         // Referral Points add #section
@@ -218,7 +209,7 @@ class AuthController extends Controller
                 $refer->save();
             }
         }
-        return $this->successResponse(true, "", $this->constant::CREATED_SUCCESS, 201);
+        return $this->successResponse(true, "", Constants::CREATED_SUCCESS, 201);
     }
 
     /**
@@ -230,22 +221,22 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), $this->customerOtpValidator());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         $user = Customers::where('mobile', $request->mobile)->first();
         //Modules #id
-        $module = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $module = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
 
         if ($user) {
-            if ($this->existingOtp($request->get($this->constant::MOBILE), $this->constant::CUSTOMER_GUARD)) return $this->errorResponse(false, "", $this->constant::OTP_ALREADY_SENT, $this->http::UNPROCESS_ENTITY_CODE);
+            if ($this->existingOtp($request->get(Constants::MOBILE), Constants::CUSTOMER_GUARD)) return $this->errorResponse(false, "", Constants::OTP_ALREADY_SENT, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
         } else {
-            $user = Customers::create(['mobile' => $request->mobile, $this->constant::PASSWORD => env($this->constant::CUSTOMER_PASSWORD), 'status' => $module]);
+            $user = Customers::create(['mobile' => $request->mobile, Constants::PASSWORD => env(Constants::CUSTOMER_PASSWORD), 'status' => $module, 'referral_code' => $this->generateRandomString()]);
             // assign the role to the created user #roles
-            $user->assignRole($this->constant::CUSTOMER_ROLE);
+            $user->assignRole(Constants::CUSTOMER_ROLE);
         }
         // send otp common function
-        $this->sendOtp($request->get($this->constant::MOBILE), $this->constant::CUSTOMER_GUARD);
-        return $this->successResponse(true, "", $this->constant::OTP_SENT_SUCCESS, 200);
+        $this->sendOtp($request->get(Constants::MOBILE), Constants::CUSTOMER_GUARD);
+        return $this->successResponse(true, $user, Constants::OTP_SENT_SUCCESS, 200);
     }
 
     /**
@@ -255,28 +246,28 @@ class AuthController extends Controller
     public function customerVerifyOTP(Request $request)
     {
         # code...
-        $verified = $this->verifyOtp($request->get($this->constant::MOBILE), $request->get($this->constant::OTP), $this->constant::CUSTOMER_GUARD);
+        $verified = $this->verifyOtp($request->get(Constants::MOBILE), $request->get(Constants::OTP), Constants::CUSTOMER_GUARD);
         if ($verified) {
-            $crendentials = array_merge($request->only([$this->constant::MOBILE]), array($this->constant::PASSWORD => env($this->constant::CUSTOMER_PASSWORD)));
-            $token = auth()->guard($this->constant::CUSTOMER_GUARD)->attempt($crendentials);
+            $crendentials = array_merge($request->only([Constants::MOBILE]), array(Constants::PASSWORD => env(Constants::CUSTOMER_PASSWORD)));
+            $token = auth()->guard(Constants::CUSTOMER_GUARD)->attempt($crendentials);
 
             // Token Generation Failed it will #returns
-            if (!$token) return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
+            if (!$token) return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
             // Logged User Details Framing
-            $user = Customers::role($this->constant::CUSTOMER_ROLE)->with(['roles', 'address'])->where('mobile', $request->get($this->constant::MOBILE))->first();
+            $user = Customers::role(Constants::CUSTOMER_ROLE)->with(['roles', 'address'])->where('mobile', $request->get(Constants::MOBILE))->first();
             if ($user) {
                 $user->fcm_token = $request->fcm_token;
                 $user->ip_address = $request->ip_address;
                 $user->device_name = $request->device_name;
                 $user->save();
-                return $this->tokenResponse(true, $user, $token, $this->constant::LOGIN_SUCCESS, 200);
+                return $this->tokenResponse(true, $user, $token, Constants::LOGIN_SUCCESS, 200);
             } else {
                 auth()->logout();
-                return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
+                return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
             }
         }
-        return $this->errorResponse(false, "", $this->constant::OTP_EXPIRED, $this->http::UNPROCESS_ENTITY_CODE);
+        return $this->errorResponse(false, "", Constants::OTP_EXPIRED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
     }
 
     ###### Customer Authentication Section of Code Started
@@ -289,20 +280,20 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), $this->riderSignupValidator());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         //Modules #id
-        $module = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $module = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
 
         // Create Cook User
-        $user = Riders::create(array_merge($request->only([$this->constant::NAME, $this->constant::MOBILE]), array($this->constant::PASSWORD => env($this->constant::RIDER_PASSWORD), $this->constant::STATUS => $module)));
+        $user = Riders::create(array_merge($request->only([Constants::NAME, Constants::MOBILE]), array(Constants::PASSWORD => env(Constants::RIDER_PASSWORD), Constants::STATUS => $module)));
 
         // assign the role to the created user #roles
-        $user->assignRole($this->constant::RIDER_ROLE);
+        $user->assignRole(Constants::RIDER_ROLE);
 
         // send otp common function
-        $this->sendOtp($request->get($this->constant::MOBILE), $this->constant::RIDER_GUARD);
-        return $this->successResponse(true, "", $this->constant::OTP_SENT_SUCCESS, 200);
+        $this->sendOtp($request->get(Constants::MOBILE), Constants::RIDER_GUARD);
+        return $this->successResponse(true, "", Constants::OTP_SENT_SUCCESS, 200);
     }
 
     /**
@@ -314,12 +305,12 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), $this->riderOtpValidator());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
-        if ($this->existingOtp($request->get($this->constant::MOBILE), $this->constant::RIDER_GUARD)) return $this->errorResponse(false, "", $this->constant::OTP_ALREADY_SENT, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
+        if ($this->existingOtp($request->get(Constants::MOBILE), Constants::RIDER_GUARD)) return $this->errorResponse(false, "", Constants::OTP_ALREADY_SENT, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         // send otp common function
-        $this->sendOtp($request->get($this->constant::MOBILE), $this->constant::RIDER_GUARD);
-        return $this->successResponse(true, "", $this->constant::OTP_SENT_SUCCESS, 200);
+        $this->sendOtp($request->get(Constants::MOBILE), Constants::RIDER_GUARD);
+        return $this->successResponse(true, "", Constants::OTP_SENT_SUCCESS, 200);
     }
 
     /**
@@ -329,23 +320,23 @@ class AuthController extends Controller
     public function riderVerifyOTP(Request $request)
     {
         # code...
-        $verified = $this->verifyOtp($request->get($this->constant::MOBILE), $request->get($this->constant::OTP), $this->constant::RIDER_GUARD);
+        $verified = $this->verifyOtp($request->get(Constants::MOBILE), $request->get(Constants::OTP), Constants::RIDER_GUARD);
         if ($verified) {
-            $crendentials = array_merge($request->only([$this->constant::MOBILE]), array($this->constant::PASSWORD => env($this->constant::RIDER_PASSWORD)));
-            $token = auth()->guard($this->constant::RIDER_GUARD)->attempt($crendentials);
+            $crendentials = array_merge($request->only([Constants::MOBILE]), array(Constants::PASSWORD => env(Constants::RIDER_PASSWORD)));
+            $token = auth()->guard(Constants::RIDER_GUARD)->attempt($crendentials);
 
             // Token Generation Failed it will #returns
-            if (!$token) return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
+            if (!$token) return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
             // Logged User Details Framing
-            $user = Riders::role($this->constant::RIDER_ROLE)->with('roles')->where('mobile', $request->get($this->constant::MOBILE))->first();
-            if ($user) return $this->tokenResponse(true, $user, $token, $this->constant::LOGIN_SUCCESS, 200);
+            $user = Riders::role(Constants::RIDER_ROLE)->with('roles')->where('mobile', $request->get(Constants::MOBILE))->first();
+            if ($user) return $this->tokenResponse(true, $user, $token, Constants::LOGIN_SUCCESS, 200);
             else {
                 auth()->logout();
-                return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
+                return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
             }
         }
-        return $this->errorResponse(false, "", $this->constant::OTP_EXPIRED, $this->http::UNPROCESS_ENTITY_CODE);
+        return $this->errorResponse(false, "", Constants::OTP_EXPIRED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
     }
 
     /**
@@ -357,7 +348,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), $this->createVendorValidator());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         DB::transaction(function () use ($request) {
             $vendors = $request->only(['name', 'email', 'mobile', 'gst_no', 'latitude', 'longitude', 'order_accept_time', 'close_time', 'open_time']);
@@ -379,7 +370,7 @@ class AuthController extends Controller
             $vendor->save();
         });
 
-        return $this->successResponse(true, "", $this->constant::CREATED_SUCCESS, 201);
+        return $this->successResponse(true, "", Constants::CREATED_SUCCESS, 201);
     }
 
     /**
@@ -391,18 +382,18 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), $this->staffSignupValidator());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         //Modules #id
-        $module = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $module = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
 
         // Create Cook User
-        $user = Staff::create(array_merge($request->only(['name', 'mobile', 'password', 'email', 'vendor_id']), array($this->constant::STATUS => $module)));
+        $user = Staff::create(array_merge($request->only(['name', 'mobile', 'password', 'email', 'vendor_id']), array(Constants::STATUS => $module)));
 
         // assign the role to the created user #roles
         $user->assignRole($request->role);
 
-        return $this->successResponse(true, "", $this->constant::CREATED_SUCCESS, 201);
+        return $this->successResponse(true, "", Constants::CREATED_SUCCESS, 201);
     }
 
     /**
@@ -412,17 +403,17 @@ class AuthController extends Controller
     public function staffLogin(Request $request)
     {
         $crendentials = $request->only('email', 'password');
-        $token = auth()->guard($this->constant::COOK_GUARD)->attempt($crendentials);
+        $token = auth()->guard(Constants::COOK_GUARD)->attempt($crendentials);
 
         // Token Generation Failed it will #returns
-        if ($token == null) return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($token == null) return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         // Logged User Details Framing
         $user = Staff::with('roles')->where('email', $request->get('email'))->first();
-        if ($user) return $this->tokenResponse(true, $user, $token, $this->constant::LOGIN_SUCCESS, 200);
+        if ($user) return $this->tokenResponse(true, $user, $token, Constants::LOGIN_SUCCESS, 200);
         else {
             auth()->logout();
-            return $this->errorResponse(false, "", $this->constant::UNAUTHORIZED, $this->http::UNPROCESS_ENTITY_CODE);
+            return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
         }
     }
 
@@ -430,13 +421,13 @@ class AuthController extends Controller
     public function logout()
     {
         auth()->logout();
-        return $this->successResponse(true, "", $this->constant::LOGOUT_SUCCESS);
+        return $this->successResponse(true, "", Constants::LOGOUT_SUCCESS);
     }
 
     #### GET OTP
     public function getOtp(Request $request)
     {
         $otp = VerificationCode::where([['mobile', $request->mobile], ['guard',  $request->guard]])->latest()->pluck('otp')->first();
-        return $this->successResponse(true, $otp, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $otp, Constants::GET_SUCCESS);
     }
 }

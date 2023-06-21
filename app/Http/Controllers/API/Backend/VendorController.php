@@ -18,15 +18,6 @@ use Illuminate\Support\Facades\Validator;
 
 class VendorController extends Controller
 {
-    private $constant;
-
-    private $http;
-
-    public function __construct()
-    {
-        $this->constant = new Constants();
-        $this->http = new HTTPStatusCode();
-    }
 
     use ResponseTraits, ValidationTraits, CommonQueries;
 
@@ -35,26 +26,55 @@ class VendorController extends Controller
     public function index(Request $request)
     {
         # code...
-        if ($request->type === $this->constant::DROPDOWN) {
+        if ($request->type === Constants::DROPDOWN) {
             $data = DB::table('vendors')->select('id as value', 'name as label')->get();
-            return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+            return $this->successResponse(true, $data, Constants::GET_SUCCESS);
         }
         $data = Vendor::with('status')->orderBy('id', 'desc')->paginate(10);
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     public function edit(String $id)
     {
         # code...
         $data = Vendor::with(['status', 'address', 'bank.type'])->where('id', $id)->first();
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
+    }
+
+    public function details(Request $request, String $id)
+    {
+        # code...
+        $customerId = auth(Constants::CUSTOMER_GUARD)->user()->id;
+        $origin = $request->get('latitude') . ',' . $request->get('longitude');
+
+        $data = DB::table('vendors')
+            ->selectRaw('vendors.id as id,vendors.name as name, vendors.image as image, vendors.latitude as latitude, vendors.longitude as longitude, vendors.rating as rating, vendors.ucount as count,IF(wishlists.id IS NULL, false, true) AS wishlist')
+            ->where('vendors.id', $id)
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('menus')
+                    ->whereRaw('menus.vendor_id = vendors.id');
+            })
+            ->leftJoin('wishlists', function ($join) use ($customerId) {
+                $join->on('wishlists.menu_id', '=', 'vendors.id')
+                    ->where('wishlists.customer_id', '=', $customerId)
+                    ->where('wishlists.type', '=', 'vendor');
+            })
+            ->first();
+        if ($data) {
+            $destination = $data->latitude . ',' . $data->longitude;
+            $google = $this->getDistance($origin, $destination);
+            $data->distance = $google['distance']['text'];
+            $data->time = $google['duration']['text'];
+        }
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     public function dropdownVendor()
     {
-        $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
         $data = DB::table('vendors')->where('status', $status)->select('id as value', 'name as label')->get();
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     public function updateVendor(Request $request, $id)
@@ -62,7 +82,7 @@ class VendorController extends Controller
         $validator = Validator::make($request->all(), $this->updateVendorValidator($id));
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         DB::transaction(function () use ($request, $id) {
             $vendors = $request->only(['name', 'email', 'mobile', 'gst_no', 'latitude', 'longitude', 'order_accept_time', 'close_time', 'open_time', 'status']);
@@ -81,7 +101,7 @@ class VendorController extends Controller
             }
         });
 
-        return $this->successResponse(true, "", $this->constant::CREATED_SUCCESS, 201);
+        return $this->successResponse(true, "", Constants::CREATED_SUCCESS, 201);
     }
 
     public function customerDetails(String $id)
@@ -91,6 +111,6 @@ class VendorController extends Controller
         $wishlist = Wishlist::where('customer_id', $auth)->where('type', 'vendor')->where('menu_id', $id)->first();
         $data = Vendor::with(['status', 'address', 'bank.type'])->where('id', $id)->first();
         $data['wishlist'] = $wishlist ? true : false;
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 }
