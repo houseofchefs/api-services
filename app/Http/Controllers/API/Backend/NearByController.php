@@ -31,7 +31,6 @@ class NearByController extends Controller
         $origin = $latitude . ',' . $longitude;
         $status = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
         $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description;
-        $currentTime = Carbon::now()->format('H:i:s');
         $data =  $this->slotBasedMenus($latitude, $longitude, $radius, 0, $status)
             ->when($request->vendorId != 0, function ($q) use ($request) {
                 $q->where('menus.vendor_id', $request->vendorId);
@@ -39,8 +38,6 @@ class NearByController extends Controller
             ->when($request->slot_id != 0, function ($q) use ($request) {
                 $q->where('categories_has_slot.slot_id', $request->slot_id);
             })
-
-            ->where('vendors.order_accept_time', '>', $currentTime)
             ->where('menus.isPreOrder', 1)->paginate(10);
         foreach ($data as $subData) {
             $destination = $subData->latitude . ',' . $subData->longitude;
