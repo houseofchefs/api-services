@@ -157,8 +157,9 @@ class CategoryController extends Controller
         $categoryIds = Menu::where('vendor_id', $id)
             ->distinct()
             ->pluck('category_id');
+        $active = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
         if (count($categoryIds) > 0) {
-            $data = $this->categoriesCommonQuery()->whereIn('categories.id', $categoryIds)->get();
+            $data = $this->categoriesCommonQuery()->where('categories.status', $active)->whereIn('categories.id', $categoryIds)->get();
         }
         return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
     }
