@@ -31,6 +31,7 @@ class NearByController extends Controller
         $origin = $latitude . ',' . $longitude;
         $status = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
         $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description;
+        $currentTime = Carbon::now()->format('H:i:s');
         $data =  $this->slotBasedMenus($latitude, $longitude, $radius, 0, $status)
             ->when($request->vendorId != 0, function ($q) use ($request) {
                 $q->where('menus.vendor_id', $request->vendorId);
@@ -38,6 +39,8 @@ class NearByController extends Controller
             ->when($request->slot_id != 0, function ($q) use ($request) {
                 $q->where('categories_has_slot.slot_id', $request->slot_id);
             })
+
+            ->where('vendors.order_accept_time', '>', $currentTime)
             ->where('menus.isPreOrder', 1)->paginate(10);
         foreach ($data as $subData) {
             $destination = $subData->latitude . ',' . $subData->longitude;
@@ -111,8 +114,10 @@ class NearByController extends Controller
         $origin = $latitude . ',' . $longitude;
         $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
         $status = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
+        $currentTime = Carbon::now()->format('H:i:s');
 
-        $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)->paginate(10);
+        $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)
+            ->where('vendors.order_accept_time', '>', $currentTime)->paginate(10);
         foreach ($data as $subData) {
             $destination = $subData->latitude . ',' . $subData->longitude;
             $google = $this->getDistance($origin, $destination);
@@ -132,12 +137,15 @@ class NearByController extends Controller
         $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
         $origin = $latitude . ',' . $longitude;
         $status = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
+        $currentTime = Carbon::now()->format('H:i:s');
 
-        $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)->when($request->get('search') != null, function ($subQ) use ($request) {
-            $subQ->where('menus.name', $request->get('search'));
-        })->when($request->get('categoryId') != 0, function ($q) use ($request) {
-            $q->where('menus.category_id', $request->categoryId);
-        })->paginate(10);
+        $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)
+            ->where('vendors.order_accept_time', '>', $currentTime)
+            ->when($request->get('search') != null, function ($subQ) use ($request) {
+                $subQ->where('menus.name', $request->get('search'));
+            })->when($request->get('categoryId') != 0, function ($q) use ($request) {
+                $q->where('menus.category_id', $request->categoryId);
+            })->paginate(10);
         foreach ($data as $subData) {
             $destination = $subData->latitude . ',' . $subData->longitude;
             $google = $this->getDistance($origin, $destination);
@@ -226,23 +234,39 @@ class NearByController extends Controller
         $customerId = auth(Constants::CUSTOMER_GUARD)->user()->id;
         $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
         $origin = $request->get('latitude') . ',' . $request->get('longitude');
-
-        // foreach ($vendors as $vendor) {
-        //     if ($this->checkWithinRadius($request->get('latitude'), $request->get('longitude'), $vendor->latitude, $vendor->longitude, $radius)) {
-        //         array_push($withinVendor, $vendor->id);
-        //     }
-        // }
+        $category = [];
+        $vendorData = [];
+        $menu = [];
 
         if ($request->get('search') != null && $request->get('search') != "") {
             // Category
             $category = Categories::where('name', 'like', '%' . $request->get('search') . '%')->whereIn('vendor_id', array_merge($withinVendor, [0]))->get();
             // Menu
-            $menu = Menu::where('name', 'like', '%' . $request->get('search') . '%')->whereIn('vendor_id', $withinVendor)->get();
+            $menu = DB::table('menus')
+                ->where('menus.name', 'like', '%' . $request->get('search') . '%')
+                ->whereIn('menus.vendor_id', $withinVendor)
+                ->selectRaw('vendors.id as vendor_id,menus.description as description,menus.name as name,menus.id as id,menus.price as price,menus.image as image,vendors.name as vendor_name,menus.units as units,vendors.latitude as latitude, vendors.longitude as longitude, vendors.rating as rating, vendors.ucount as count,IF(wishlists.id IS NULL, false, true) AS wishlist')
+                ->join('vendors', 'menus.vendor_id', '=', 'vendors.id')
+                ->where('menus.status', $status)
+                ->where('menus.menu_type', 'product')
+                ->leftJoin('wishlists', function ($join) use ($customerId) {
+                    $join->on('wishlists.menu_id', '=', 'vendors.id')
+                        ->where('wishlists.customer_id', '=', $customerId)
+                        ->where('wishlists.type', '=', 'product');
+                })->get();
+            if (count($menu) > 0) {
+                foreach ($menu as $subData) {
+                    $destination = $subData->latitude . ',' . $subData->longitude;
+                    $google = $this->getDistance($origin, $destination);
+                    $subData->distance = $google['distance']['text'];
+                    $subData->time = $google['duration']['text'];
+                }
+            }
             // Vendor
-            $vendorData = Vendor::where('name', 'like', '%' . $request->get('search') . '%')->whereIn('id', $withinVendor)->get();
             $vendorData = DB::table('vendors')
                 ->selectRaw('vendors.id as id,vendors.name as name, vendors.image as image, vendors.latitude as latitude, vendors.longitude as longitude, vendors.rating as rating, vendors.ucount as count,IF(wishlists.id IS NULL, false, true) AS wishlist')
                 ->whereIn('vendors.id', $withinVendor)
+                ->where('name', 'like', '%' . $request->get('search') . '%')
                 ->where('status', $status)
                 ->whereExists(function ($query) {
                     $query->select(DB::raw(1))
@@ -255,14 +279,13 @@ class NearByController extends Controller
                         ->where('wishlists.type', '=', 'vendor');
                 })
                 ->get();
-        }
-
-        if (count($vendorData) > 0) {
-            foreach ($vendorData as $subData) {
-                $destination = $subData->latitude . ',' . $subData->longitude;
-                $google = $this->getDistance($origin, $destination);
-                $subData->distance = $google['distance']['text'];
-                $subData->time = $google['duration']['text'];
+            if (count($vendorData) > 0) {
+                foreach ($vendorData as $subData) {
+                    $destination = $subData->latitude . ',' . $subData->longitude;
+                    $google = $this->getDistance($origin, $destination);
+                    $subData->distance = $google['distance']['text'];
+                    $subData->time = $google['duration']['text'];
+                }
             }
         }
 

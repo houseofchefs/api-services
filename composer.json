@@ -10,6 +10,7 @@
         "guzzlehttp/guzzle": "^7.5",
         "guzzlehttp/promises": "^1.4",
         "guzzlehttp/psr7": "^1.4",
+        "kreait/laravel-firebase": "^5.2",
         "laravel/framework": "^10.0",
         "laravel/sanctum": "^3.2",
         "laravel/tinker": "^2.8",

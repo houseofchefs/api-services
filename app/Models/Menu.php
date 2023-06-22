@@ -66,4 +66,12 @@ class Menu extends Model
     {
         return $this->belongsTo(Modules::class, 'type');
     }
+
+    /**
+     * @return BelongsTo
+     */
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class, 'vendor_id');
+    }
 }
