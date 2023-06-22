@@ -383,6 +383,7 @@ class NearByController extends Controller
         $longitude = $request->longitude;
         $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
         $status = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
+        $active = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
         $currentTime = Carbon::now()->format('H:i:s');
 
         $withinVendor = $this->vendorWithInTheRadius($latitude, $longitude, $radius);
@@ -394,6 +395,7 @@ class NearByController extends Controller
             ->join('categories_has_slot', 'categories_has_slot.category_id', '=', 'menus.category_id')
             ->join('modules', 'modules.id', '=', 'menus.type')
             ->where('menus.isApproved', 1)
+            ->where('categories.status', $active)
             ->where('menus.menu_type', 'menu')
             ->where('menus.status', $status)
             ->where('vendors.id', $id)
