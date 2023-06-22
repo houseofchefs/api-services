@@ -64,6 +64,6 @@ class CustomerController extends Controller
             $customer->image = $path;
             $customer->save();
         }
-        return $this->successResponse(true, "", Constants::UPDATED_SUCCESS);
+        return $this->successResponse(true, $path, Constants::UPDATED_SUCCESS);
     }
 }

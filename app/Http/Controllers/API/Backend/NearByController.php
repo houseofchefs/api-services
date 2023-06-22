@@ -114,7 +114,16 @@ class NearByController extends Controller
         $currentTime = Carbon::now()->format('H:i:s');
 
         $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)
-            ->where('vendors.order_accept_time', '>', $currentTime)->paginate(10);
+            ->where(function ($subQ) use ($request, $currentTime) {
+                $subQ->where(function ($subQ2) use ($request) {
+                    // Handle when isPreOrder is true (not checking order_accept_time)
+                    $subQ2->where('menus.isPreOrder', 1);
+                })->orWhere(function ($subQ3) use ($request, $currentTime) {
+                    // Handle when isPreOrder is false (checking order_accept_time)
+                    $subQ3->where('menus.isPreOrder', 0)
+                        ->where('vendors.order_accept_time', '>', $currentTime);
+                });
+            })->paginate(10);
         foreach ($data as $subData) {
             $destination = $subData->latitude . ',' . $subData->longitude;
             $google = $this->getDistance($origin, $destination);
@@ -137,7 +146,16 @@ class NearByController extends Controller
         $currentTime = Carbon::now()->format('H:i:s');
 
         $data =  $this->slotBasedMenus($latitude, $longitude, $radius, $request->slot, $status)
-            ->where('vendors.order_accept_time', '>', $currentTime)
+            ->where(function ($subQ) use ($request, $currentTime) {
+                $subQ->where(function ($subQ2) use ($request) {
+                    // Handle when isPreOrder is true (not checking order_accept_time)
+                    $subQ2->where('menus.isPreOrder', 1);
+                })->orWhere(function ($subQ3) use ($request, $currentTime) {
+                    // Handle when isPreOrder is false (checking order_accept_time)
+                    $subQ3->where('menus.isPreOrder', 0)
+                        ->where('vendors.order_accept_time', '>', $currentTime);
+                });
+            })
             ->when($request->get('search') != null, function ($subQ) use ($request) {
                 $subQ->where('menus.name', $request->get('search'));
             })->when($request->get('categoryId') != 0, function ($q) use ($request) {
@@ -338,9 +356,18 @@ class NearByController extends Controller
             ->where('menus.isApproved', 1)
             ->where('menus.menu_type', 'menu')
             ->where('menus.status', $status)
-            ->where('vendors.order_accept_time', '>', $currentTime)
             ->when($request->get('categoryId') != 0, function ($q) use ($request) {
                 $q->where('menus.category_id', $request->categoryId);
+            })
+            ->where(function ($subQ) use ($request, $currentTime) {
+                $subQ->where(function ($subQ2) use ($request) {
+                    // Handle when isPreOrder is true (not checking order_accept_time)
+                    $subQ2->where('menus.isPreOrder', 1);
+                })->orWhere(function ($subQ3) use ($request, $currentTime) {
+                    // Handle when isPreOrder is false (checking order_accept_time)
+                    $subQ3->where('menus.isPreOrder', 0)
+                        ->where('vendors.order_accept_time', '>', $currentTime);
+                });
             })
             ->whereIn('menus.vendor_id', $withinVendor)
             ->when($request->get('search') != null, function ($subQ) use ($request) {
@@ -371,9 +398,18 @@ class NearByController extends Controller
             ->where('menus.status', $status)
             ->where('vendors.id', $id)
             ->whereIn('menus.vendor_id', $withinVendor)
-            ->where('vendors.order_accept_time', '>', $currentTime)
             ->when($request->get('categoryId') != 0, function ($q) use ($request) {
                 $q->where('menus.category_id', $request->categoryId);
+            })
+            ->where(function ($subQ) use ($request, $currentTime) {
+                $subQ->where(function ($subQ2) use ($request) {
+                    // Handle when isPreOrder is true (not checking order_accept_time)
+                    $subQ2->where('menus.isPreOrder', 1);
+                })->orWhere(function ($subQ3) use ($request, $currentTime) {
+                    // Handle when isPreOrder is false (checking order_accept_time)
+                    $subQ3->where('menus.isPreOrder', 0)
+                        ->where('vendors.order_accept_time', '>', $currentTime);
+                });
             })
             ->when($request->slot != 0, function ($q) use ($request) {
                 return $q->where('categories_has_slot.slot_id', '=', $request->slot);
