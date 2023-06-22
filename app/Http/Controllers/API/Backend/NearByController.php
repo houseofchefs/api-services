@@ -318,6 +318,7 @@ class NearByController extends Controller
         $longitude = $request->longitude;
         $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
         $status = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
+        $currentTime = Carbon::now()->format('H:i:s');
 
         $vendors = Vendor::get();
         $withinVendor = [];
@@ -337,6 +338,7 @@ class NearByController extends Controller
             ->where('menus.isApproved', 1)
             ->where('menus.menu_type', 'menu')
             ->where('menus.status', $status)
+            ->where('vendors.order_accept_time', '>', $currentTime)
             ->when($request->get('categoryId') != 0, function ($q) use ($request) {
                 $q->where('menus.category_id', $request->categoryId);
             })
@@ -354,6 +356,7 @@ class NearByController extends Controller
         $longitude = $request->longitude;
         $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
         $status = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
+        $currentTime = Carbon::now()->format('H:i:s');
 
         $withinVendor = $this->vendorWithInTheRadius($latitude, $longitude, $radius);
 
@@ -368,6 +371,7 @@ class NearByController extends Controller
             ->where('menus.status', $status)
             ->where('vendors.id', $id)
             ->whereIn('menus.vendor_id', $withinVendor)
+            ->where('vendors.order_accept_time', '>', $currentTime)
             ->when($request->get('categoryId') != 0, function ($q) use ($request) {
                 $q->where('menus.category_id', $request->categoryId);
             })
