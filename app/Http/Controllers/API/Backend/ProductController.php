@@ -16,15 +16,6 @@ use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
-    private $constant;
-
-    private $http;
-
-    public function __construct()
-    {
-        $this->constant = new Constants();
-        $this->http = new HTTPStatusCode();
-    }
 
     use ResponseTraits, ValidationTraits, CommonQueries;
 
@@ -34,7 +25,7 @@ class ProductController extends Controller
     public function index()
     {
         $data = Product::with('status')->paginate(10);
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     /**
@@ -53,10 +44,10 @@ class ProductController extends Controller
         $validator = Validator::make($request->all(), $this->createProductValidation());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         // Product #status
-        $modules = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $modules = $this->getModuleIdBasedOnCode(Constants::MENU_HOLD);
 
         // create
         $percentage = $this->getModuleBasedOnCode("MT12");
@@ -68,7 +59,7 @@ class ProductController extends Controller
         $data->image = $path;
         $data->save();
 
-        return $this->successResponse(true, "", $this->constant::CREATED_SUCCESS, $this->http::CREATED);
+        return $this->successResponse(true, "", Constants::CREATED_SUCCESS, HTTPStatusCode::CREATED);
     }
 
     /**
@@ -76,9 +67,9 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        $modules = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $modules = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
         $data = Product::where('status', $modules)->where('id', $id)->first();
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     /**
@@ -97,7 +88,7 @@ class ProductController extends Controller
         $validator = Validator::make($request->all(), $this->updateProductValidation());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         // Product #status
         $modules = $this->getModuleIdBasedOnCode($request->status);
@@ -121,7 +112,7 @@ class ProductController extends Controller
             $product->save();
         }
 
-        return $this->successResponse(true, "", $this->constant::UPDATED_SUCCESS);
+        return $this->successResponse(true, "", Constants::UPDATED_SUCCESS);
     }
 
     /**
@@ -135,6 +126,6 @@ class ProductController extends Controller
     public function vendorBasedProduct($id)
     {
         $data = Menu::with('status')->where('vendor_id', $id)->where('menu_type', 'product')->orderBy('id', 'desc')->paginate(12);
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 }

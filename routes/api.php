@@ -4,12 +4,9 @@ use App\Http\Controllers\API\Auth\AuthController;
 use App\Http\Controllers\API\Backend\AdminController;
 use App\Http\Controllers\API\Backend\CartController;
 use App\Http\Controllers\API\Backend\CategoryController;
-use App\Http\Controllers\API\Backend\CookController;
 use App\Http\Controllers\API\Backend\CustomerController;
 use App\Http\Controllers\API\Backend\DetailsController;
 use App\Http\Controllers\API\Backend\DiscountController;
-use App\Http\Controllers\API\Backend\HomeController;
-use App\Http\Controllers\API\Backend\ImageController;
 use App\Http\Controllers\API\Backend\MenuController;
 use App\Http\Controllers\API\Backend\ModuleController;
 use App\Http\Controllers\API\Backend\NearByController;
@@ -17,7 +14,6 @@ use App\Http\Controllers\API\Backend\OrderController;
 use App\Http\Controllers\API\Backend\PreBookingController;
 use App\Http\Controllers\API\Backend\ProductController;
 use App\Http\Controllers\API\Backend\StaffController;
-use App\Http\Controllers\API\Backend\SubCategoryController;
 use App\Http\Controllers\API\Backend\VendorController;
 use Illuminate\Support\Facades\Route;
 
@@ -154,7 +150,11 @@ Route::prefix('v1')->middleware('api')->group(function () {
         });
 
         Route::resource("discount", DiscountController::class)->except(['create', 'edit']);
-        Route::post("discount/{id}", [DiscountController::class, 'update']);
+        Route::controller(DiscountController::class)->group(function () {
+            Route::post("discount/{id}", 'update');
+            Route::get("available/discount", 'discountList');
+            Route::get('coupon/{code}', 'checkCoupon');
+        });
         Route::resource("cart", CartController::class)->except(['create', 'edit', 'show']);
         Route::delete('cart/delete/{id}', [CartController::class, 'customerCartRemove']);
         Route::prefix('category')->controller(CategoryController::class)->group(function () {
@@ -174,7 +174,6 @@ Route::prefix('v1')->middleware('api')->group(function () {
         Route::prefix('pre-book')->controller(PreBookingController::class)->group(function () {
             Route::post('create', 'store');
         });
-        Route::get("available/discount", [DiscountController::class, 'discountList']);
         Route::prefix('near-by')->controller(NearByController::class)->group(function () {
             Route::get('/pre-booking', 'preBookingList');
             Route::get('/today-offer/menu', 'todayOfferMenus');

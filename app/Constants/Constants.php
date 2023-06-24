@@ -89,6 +89,9 @@ final class Constants
     const PAYMENT_METHOD_CC = "PM02";
     const PAYMENT_METHOD_DC = "PM03";
     const PAYMENT_METHOD_CASH = "PM04";
+    # Discount
+    const DISCOUNT = "FO01";
+    const COUPON = "FO02";
     # Radius
     const RADIUS = "MT11";
 }

@@ -16,16 +16,6 @@ use Illuminate\Support\Facades\Validator;
 
 class DiscountController extends Controller
 {
-    private $constant;
-
-    private $http;
-
-    public function __construct()
-    {
-        $this->constant = new Constants();
-        $this->http = new HTTPStatusCode();
-        // $this->middleware( 'role:admin');
-    }
 
     use ResponseTraits, ValidationTraits, CommonQueries;
 
@@ -34,7 +24,7 @@ class DiscountController extends Controller
      */
     public function index()
     {
-        $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
         $discount = Discount::with(['vendor', 'status', 'type'])->orderBy('id', 'desc')->paginate(10);
         // $discount = DB::table('discounts')
         // ->where([
@@ -56,7 +46,7 @@ class DiscountController extends Controller
         //     )
         //     ->paginate(10);
 
-        return $this->successResponse(true, $discount, $this->constant::GET_SUCCESS, $this->http::OK);
+        return $this->successResponse(true, $discount, Constants::GET_SUCCESS, HTTPStatusCode::OK);
     }
 
     /**
@@ -75,10 +65,10 @@ class DiscountController extends Controller
         $validator = Validator::make($request->all(), $this->discountValidator());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         // Status
-        $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
 
         // Create Discount
         $discount = Discount::create(array_merge(
@@ -91,7 +81,7 @@ class DiscountController extends Controller
         $path = $this->uploadImage($request->file('image'), '/discount', $discount->id . '.' . $request->file('image')->getClientOriginalExtension());
         $discount->image = $path;
         $discount->save();
-        return $this->successResponse(true, $discount, $this->constant::DISCOUNT_CREATED, $this->http::CREATED);
+        return $this->successResponse(true, $discount, Constants::DISCOUNT_CREATED, HTTPStatusCode::CREATED);
     }
 
     /**
@@ -100,7 +90,7 @@ class DiscountController extends Controller
     public function show(string $id)
     {
         $discount = Discount::with(['vendor', 'status', 'type', 'category'])->where([['id', $id]])->first();
-        return $this->successResponse(true, $discount, $this->constant::GET_SUCCESS, $this->http::OK);
+        return $this->successResponse(true, $discount, Constants::GET_SUCCESS, HTTPStatusCode::OK);
     }
 
     /**
@@ -132,7 +122,7 @@ class DiscountController extends Controller
             $discount->expire_at = $request->expire_at;
             $discount->status = $request->status;
             $discount->save();
-            return $this->successResponse(true, $discount, $this->constant::DISCOUNT_UPDATED, $this->http::OK);
+            return $this->successResponse(true, $discount, Constants::DISCOUNT_UPDATED, HTTPStatusCode::OK);
         }
     }
 
@@ -141,10 +131,10 @@ class DiscountController extends Controller
      */
     public function destroy(string $id)
     {
-        $status = $this->getModuleIdBasedOnCode($this->constant::INACTIVE);
+        $status = $this->getModuleIdBasedOnCode(Constants::INACTIVE);
         $discount = Discount::where('id', $id)->first();
         $discount->status = $status;
-        return $this->successResponse(true, $discount, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $discount, Constants::GET_SUCCESS);
     }
 
     /**
@@ -152,8 +142,16 @@ class DiscountController extends Controller
      */
     public function discountList()
     {
-        $status = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
         $discount = DB::table('discounts')->where([['status', $status], ['expire_at', '>', Carbon::now()]])->orderBy('percentage', 'desc')->limit(3)->select('name', 'percentage', 'image', 'id', 'description')->get();
-        return $this->successResponse(true, $discount, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $discount, Constants::GET_SUCCESS);
+    }
+
+    public function checkCoupon($code)
+    {
+        $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
+        $type = $this->getModuleIdBasedOnCode(Constants::COUPON);
+        $discount = DB::table('discounts')->where([['status', $status], ['expire_at', '>', Carbon::now()], ['type', $type], ['name', $code]])->select('name', 'percentage', 'image', 'id', 'description')->first();
+        return $this->successResponse(true, $discount, Constants::GET_SUCCESS);
     }
 }
