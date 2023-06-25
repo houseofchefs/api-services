@@ -271,30 +271,6 @@ class AuthController extends Controller
     }
 
     ###### Customer Authentication Section of Code Started
-    /**
-     * @param $request
-     * create riders
-     */
-    public function riderSignUp(Request $request)
-    {
-        $validator = Validator::make($request->all(), $this->riderSignupValidator());
-
-        // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
-
-        //Modules #id
-        $module = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
-
-        // Create Cook User
-        $user = Riders::create(array_merge($request->only([Constants::NAME, Constants::MOBILE]), array(Constants::PASSWORD => env(Constants::RIDER_PASSWORD), Constants::STATUS => $module)));
-
-        // assign the role to the created user #roles
-        $user->assignRole(Constants::RIDER_ROLE);
-
-        // send otp common function
-        $this->sendOtp($request->get(Constants::MOBILE), Constants::RIDER_GUARD);
-        return $this->successResponse(true, "", Constants::OTP_SENT_SUCCESS, 200);
-    }
 
     /**
      * @param $request

@@ -175,12 +175,21 @@ class MenuController extends Controller
                 ->where('wishlists.type', $request->type)
                 ->paginate(10);
         } elseif ($request->type == "vendor") {
+            $latitude = $request->get('latitude');
+            $longitude = $request->get('longitude');
+            $origin = $latitude . ',' . $longitude;
             $wishlist = DB::table('wishlists')
                 ->join('vendors', 'vendors.id', '=', 'wishlists.menu_id')
                 ->select('vendors.id as id', 'vendors.name as name',  'vendors.rating as rating', 'vendors.ucount as ratingCount', 'vendors.latitude as latitude', 'vendors.longitude as longitude')
                 ->where('wishlists.customer_id', '=', $id)
                 ->where('wishlists.type', $request->type)
                 ->paginate(10);
+            foreach ($wishlist as $subData) {
+                $destination = $subData->latitude . ',' . $subData->longitude;
+                $google = $this->getDistance($origin, $destination);
+                $subData->distance = $google['distance']['text'];
+                $subData->time = $google['duration']['text'];
+            }
         }
         return $wishlist;
     }
