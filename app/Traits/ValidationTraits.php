@@ -96,6 +96,43 @@ trait ValidationTraits
         ];
     }
 
+    protected function riderStoreValidator(): array
+    {
+        return [
+            'name'              => 'required|max:30',
+            'mobile'            => 'required|unique:riders,mobile',
+            'email'             => 'required|unique:riders,email',
+            'door_no'           => 'required',
+            'account_number'    => 'required|max:16',
+            'account_type'      => 'required',
+            'bank_name'         => 'required',
+            'holder_name'       => 'required',
+            'ifsc_code'         => 'required:max:14',
+            'address_line'      => 'required',
+            'insurance_number'  => 'required',
+            'registration_number' => 'required'
+        ];
+    }
+
+    protected function riderUpdateValidator($id): array
+    {
+        return [
+            'name'              => 'required|max:30',
+            'mobile'            => ['required', Rule::unique('riders')->ignore($id)],
+            'email'             => ['required', Rule::unique('riders')->ignore($id)],
+            'door_no'           => 'required',
+            'account_number'    => 'required|max:16',
+            'account_type'      => 'required',
+            'bank_name'         => 'required',
+            'holder_name'       => 'required',
+            'ifsc_code'         => 'required:max:14',
+            'address_line'      => 'required',
+            'insurance_number'  => 'required',
+            'registration_number' => 'required',
+            'status'            => 'required'
+        ];
+    }
+
     /**
      * @rider get-otp validator
      */

@@ -339,62 +339,6 @@ class AuthController extends Controller
         return $this->errorResponse(false, "", Constants::OTP_EXPIRED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
     }
 
-    /**
-     * @param $request
-     * create vendor
-     */
-    public function vendorSignup(Request $request)
-    {
-        $validator = Validator::make($request->all(), $this->createVendorValidator());
-
-        // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
-
-        DB::transaction(function () use ($request) {
-            $vendors = $request->only(['name', 'email', 'mobile', 'gst_no', 'latitude', 'longitude', 'order_accept_time', 'close_time', 'open_time']);
-            $address = $request->only(['door_no', 'lanmark', 'address_line', 'latitude', 'longitude', 'pincode', 'place_id']);
-            $bank = $request->only(['bank_name', 'account_number', 'account_type', 'ifsc_code', 'holder_name']);
-
-            $currentDate = Carbon::now();
-            $subscription = $currentDate->addDays(365);
-            $bankDetail = Bank::create(array_merge($bank, array('guard' => "cook")));
-            $addressDetail = Address::create(array_merge($address, array('guard' => "cook")));
-            $vendor = Vendor::create(array_merge($vendors, array('bank_id' => $bankDetail->id, 'address_id' => $addressDetail->id, 'created_by' => 1, 'subscription_expire_at' => $subscription)));
-            $bankDetail->user_id = $vendor->id;
-            $addressDetail->user_id = $vendor->id;
-            $bankDetail->save();
-            $addressDetail->save();
-
-            $path = $this->uploadImage($request->file('image'), 'vendor/' . $vendor->id . '/profile', $vendor->id . '.' . $request->file('image')->getClientOriginalExtension());
-            $vendor->image = $path;
-            $vendor->save();
-        });
-
-        return $this->successResponse(true, "", Constants::CREATED_SUCCESS, 201);
-    }
-
-    /**
-     * @param $request
-     * create riders
-     */
-    public function staffSignUp(Request $request)
-    {
-        $validator = Validator::make($request->all(), $this->staffSignupValidator());
-
-        // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
-
-        //Modules #id
-        $module = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
-
-        // Create Cook User
-        $user = Staff::create(array_merge($request->only(['name', 'mobile', 'password', 'email', 'vendor_id']), array(Constants::STATUS => $module)));
-
-        // assign the role to the created user #roles
-        $user->assignRole($request->role);
-
-        return $this->successResponse(true, "", Constants::CREATED_SUCCESS, 201);
-    }
 
     /**
      * @param $request

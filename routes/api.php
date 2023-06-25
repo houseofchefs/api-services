@@ -13,6 +13,7 @@ use App\Http\Controllers\API\Backend\NearByController;
 use App\Http\Controllers\API\Backend\OrderController;
 use App\Http\Controllers\API\Backend\PreBookingController;
 use App\Http\Controllers\API\Backend\ProductController;
+use App\Http\Controllers\API\Backend\RiderController;
 use App\Http\Controllers\API\Backend\StaffController;
 use App\Http\Controllers\API\Backend\VendorController;
 use Illuminate\Support\Facades\Route;
@@ -51,7 +52,6 @@ Route::prefix('v1')->middleware('api')->group(function () {
         });
         ## Auth for Rider
         Route::prefix('rider')->group(function () {
-            Route::post('signup', 'riderSignUp');
             Route::get('otp', 'riderGetOTP');
             Route::post('verify-otp', 'riderVerifyOTP');
         });
@@ -62,10 +62,6 @@ Route::prefix('v1')->middleware('api')->group(function () {
 
     ## Authenticate User Only Access the Route
     Route::middleware('jwt')->group(function () {
-        ## Auth for Vendor
-        Route::prefix('vendor')->group(function () {
-            Route::post('signup', '\App\Http\Controllers\API\Auth\AuthController@vendorSignUp');
-        });
         ## Menu Route's
         Route::prefix('menu')->controller(MenuController::class)->group(function () {
             Route::get('detail/{id}', 'menuDetails');
@@ -193,6 +189,8 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::post('edit/{id}', 'updateVendor');
             Route::get('{id}', 'customerDetails');
             Route::get('detail/{id}', 'details');
+            Route::post('signup', 'vendorSignup');
+            Route::post('staff/signup', 'staffSignUp');
         });
         Route::prefix('staff')->controller(StaffController::class)->group(function () {
             Route::get('vendor-based/list/{id}', 'index');
@@ -210,6 +208,13 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('edit/{id}', 'edit');
             Route::put('update/{id}', 'update');
             Route::get('dashboard', 'dashboard');
+        });
+        Route::prefix('rider')->controller(RiderController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::post('signup', 'riderSignUp');
+            Route::post('store', 'store');
+            Route::get('edit/{id}', 'edit');
+            Route::post('edit/{id}', 'update');
         });
     });
 });
