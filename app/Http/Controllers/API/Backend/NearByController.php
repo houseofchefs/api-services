@@ -274,7 +274,12 @@ class NearByController extends Controller
                     ->where('wishlists.type', '=', 'product');
             })
             ->paginate(10);
-        $data = $this->addDistanceAndTime($data, $origin);
+        foreach ($data as $subData) {
+            $destination = $subData->latitude . ',' . $subData->longitude;
+            $google = $this->getDistance($origin, $destination);
+            $subData->distance = $google['distance']['text'];
+            $subData->time = $google['duration']['text'];
+        }
         return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
