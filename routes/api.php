@@ -53,7 +53,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
         ## Auth for Rider
         Route::prefix('rider')->group(function () {
             Route::get('otp', 'riderGetOTP');
-            Route::post('verify-otp', 'riderVerifyOTP');
+            Route::post('login', 'riderLogin');
         });
         ## Logout
         Route::get('logout', 'logout');
@@ -149,7 +149,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
         Route::controller(DiscountController::class)->group(function () {
             Route::post("discount/{id}", 'update');
             Route::get("available/discount", 'discountList');
-            Route::get('coupon/{code}', 'checkCoupon');
+            // Route::get('coupon/{code}', 'checkCoupon');
         });
         Route::resource("cart", CartController::class)->except(['create', 'edit', 'show']);
         Route::delete('cart/delete/{id}', [CartController::class, 'customerCartRemove']);
@@ -179,7 +179,7 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('/vendor-category-based-menu/{id}', 'vendorAndCategoryBasedMenu');
             Route::get('vendors', 'vendorList');
             Route::get('products', 'productList');
-            Route::get('global-search', 'globalSearch');
+            // Route::get('global-search', 'globalSearch');
             Route::get('vendor/drop-down', 'vendorListDropdown');
         });
         Route::prefix('vendor')->controller(VendorController::class)->group(function () {
@@ -209,12 +209,13 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::put('update/{id}', 'update');
             Route::get('dashboard', 'dashboard');
         });
-        Route::prefix('rider')->controller(RiderController::class)->group(function () {
-            Route::get('/', 'index');
-            Route::post('signup', 'riderSignUp');
-            Route::post('store', 'store');
-            Route::get('edit/{id}', 'edit');
-            Route::post('edit/{id}', 'update');
-        });
+        // Route::prefix('rider')->controller(RiderController::class)->group(function () {
+        //     Route::get('/', 'index');
+        //     Route::post('signup', 'riderSignUp');
+        //     Route::post('store', 'store');
+        //     Route::get('edit/{id}', 'edit');
+        //     Route::post('edit/{id}', 'update');
+        //     Route::get('assigned-order/{id}', 'assignedOrders');
+        // });
     });
 });

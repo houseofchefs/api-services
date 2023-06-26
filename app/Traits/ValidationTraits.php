@@ -110,7 +110,8 @@ trait ValidationTraits
             'ifsc_code'         => 'required:max:14',
             'address_line'      => 'required',
             'insurance_number'  => 'required',
-            'registration_number' => 'required'
+            'registration_number' => 'required',
+            'password'          => 'required'
         ];
     }
 

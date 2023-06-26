@@ -110,11 +110,12 @@ class NearByController extends Controller
                 'vendors.name as vendor_name',
                 'vendors.latitude',
                 'vendors.longitude',
-                'menus.name as menu_name',
+                'menus.name as name',
                 'menus.image as menu_image',
                 'menus.rating as rating',
                 'menus.ucount as count',
                 'menus.id as menu_id',
+                'menus.description as description',
                 'menus.category_id as category_id',
                 'menus.price as price',
                 DB::raw('IF(wishlists.id IS NULL, false, true) AS wishlist')
@@ -242,7 +243,7 @@ class NearByController extends Controller
         $longitude = $request->get('longitude');
         $origin = $latitude . ',' . $longitude;
         $customerId = auth(Constants::CUSTOMER_GUARD)->user()->id;
-        $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
+        $status = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
         $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
         $withinVendor = $this->vendorWithInTheRadius($request->get('latitude'), $request->get('longitude'), $radius);
 
@@ -287,7 +288,7 @@ class NearByController extends Controller
         $menu = [];
         $customerId = auth(Constants::CUSTOMER_GUARD)->user()->id;
         $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
-        $menu = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
+        $menuStatus = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
         $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
         $origin = $request->get('latitude') . ',' . $request->get('longitude');
         $withinVendor = $this->vendorWithInTheRadius($request->get('latitude'), $request->get('longitude'), $radius);
@@ -323,7 +324,7 @@ class NearByController extends Controller
                 })
                 ->where('menus.name', 'like', '%' . $request->get('search') . '%')
                 ->whereIn('menus.vendor_id', $withinVendor)
-                ->where('menus.status', $menu)
+                ->where('menus.status', $menuStatus)
                 ->where(function ($query) {
                     $query->where('menus.menu_type', 'product')
                         ->orWhere('menus.menu_type', 'menu');

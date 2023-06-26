@@ -270,8 +270,6 @@ class AuthController extends Controller
         return $this->errorResponse(false, "", Constants::OTP_EXPIRED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
     }
 
-    ###### Customer Authentication Section of Code Started
-
     /**
      * @param $request
      * validate mobile number and generate otp
@@ -293,26 +291,26 @@ class AuthController extends Controller
      * @param $request
      * verify otp and authorize the user
      */
-    public function riderVerifyOTP(Request $request)
+    public function riderLogin(Request $request)
     {
-        # code...
-        $verified = $this->verifyOtp($request->get(Constants::MOBILE), $request->get(Constants::OTP), Constants::RIDER_GUARD);
-        if ($verified) {
-            $crendentials = array_merge($request->only([Constants::MOBILE]), array(Constants::PASSWORD => env(Constants::RIDER_PASSWORD)));
-            $token = auth()->guard(Constants::RIDER_GUARD)->attempt($crendentials);
+        $validator = Validator::make($request->all(), $this->adminLoginVerify());
 
-            // Token Generation Failed it will #returns
-            if (!$token) return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
+        // If validator fails it will #returns
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
-            // Logged User Details Framing
-            $user = Riders::role(Constants::RIDER_ROLE)->with('roles')->where('mobile', $request->get(Constants::MOBILE))->first();
-            if ($user) return $this->tokenResponse(true, $user, $token, Constants::LOGIN_SUCCESS, 200);
-            else {
-                auth()->logout();
-                return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
-            }
+        $crendentials = $request->only('email', 'password');
+        $token = auth(Constants::RIDER_GUARD)->attempt($crendentials);
+
+        // Token Generation Failed it will #returns
+        if ($token == null) return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
+
+        // Logged User Details Framing
+        $user = Riders::with('roles')->where('email', $request->get('email'))->first();
+        if ($user) return $this->tokenResponse(true, $user, $token, Constants::LOGIN_SUCCESS, 200);
+        else {
+            auth()->logout();
+            return $this->errorResponse(false, "", Constants::UNAUTHORIZED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
         }
-        return $this->errorResponse(false, "", Constants::OTP_EXPIRED, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
     }
 
 

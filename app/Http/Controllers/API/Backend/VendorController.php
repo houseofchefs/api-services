@@ -87,13 +87,13 @@ class VendorController extends Controller
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         DB::transaction(function () use ($request, $id) {
-            $vendors = $request->only(['name', 'email', 'mobile', 'gst_no', 'latitude', 'longitude', 'order_accept_time', 'close_time', 'open_time', 'status']);
+            $vendors = $request->only(['name', 'email', 'gst_no', 'latitude', 'longitude', 'order_accept_time', 'close_time', 'open_time', 'status']);
             $address = $request->only(['door_no', 'lanmark', 'address_line', 'latitude', 'longitude', 'pincode', 'place_id']);
             $bank = $request->only(['bank_name', 'account_number', 'account_type', 'ifsc_code', 'holder_name']);
 
             Bank::where('id', $request->bank_id)->update(array_merge($bank, array('guard' => "cook", 'user_id' => $id)));
             Address::where('id', $request->address_id)->update(array_merge($address, array('guard' => "cook", 'user_id' => $id)));
-            Vendor::where('id', $id)->update(array_merge($vendors, array('bank_id' => $request->bank_id, 'address_id' => $request->address_id, 'created_by' => 1)));
+            Vendor::where('id', $id)->update(array_merge($vendors, array('bank_id' => $request->bank_id, 'address_id' => $request->address_id, 'created_by' => 1, 'mobile' => preg_replace('/[^0-9]/', '', $request->get('mobile')))));
 
             if (gettype($request->get('image')) != 'string' && $request->file('image') != null) {
                 $path = $this->uploadImage($request->file('image'), 'vendor/' . $id . '/profile', $id . '.' . $request->file('image')->getClientOriginalExtension());
@@ -128,7 +128,7 @@ class VendorController extends Controller
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         DB::transaction(function () use ($request) {
-            $vendors = $request->only(['name', 'email', 'mobile', 'gst_no', 'latitude', 'longitude', 'order_accept_time', 'close_time', 'open_time']);
+            $vendors = $request->only(['name', 'email', 'gst_no', 'latitude', 'longitude', 'order_accept_time', 'close_time', 'open_time']);
             $address = $request->only(['door_no', 'lanmark', 'address_line', 'latitude', 'longitude', 'pincode']);
             $bank = $request->only(['bank_name', 'account_number', 'account_type', 'ifsc_code', 'holder_name']);
 
@@ -136,7 +136,7 @@ class VendorController extends Controller
             $subscription = $currentDate->addDays(365);
             $bankDetail = Bank::create(array_merge($bank, array('guard' => "cook")));
             $addressDetail = Address::create(array_merge($address, array('guard' => "cook")));
-            $vendor = Vendor::create(array_merge($vendors, array('bank_id' => $bankDetail->id, 'address_id' => $addressDetail->id, 'created_by' => 1, 'subscription_expire_at' => $subscription)));
+            $vendor = Vendor::create(array_merge($vendors, array('bank_id' => $bankDetail->id, 'address_id' => $addressDetail->id, 'created_by' => 1, 'subscription_expire_at' => $subscription, 'mobile' => preg_replace('/[^0-9]/', '', $request->get('mobile')))));
             $bankDetail->user_id = $vendor->id;
             $addressDetail->user_id = $vendor->id;
             $bankDetail->save();

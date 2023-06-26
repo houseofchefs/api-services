@@ -7,6 +7,7 @@ use App\Constants\HTTPStatusCode;
 use App\Http\Controllers\Controller;
 use App\Models\Address;
 use App\Models\Bank;
+use App\Models\Orders;
 use App\Models\Riders;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
@@ -60,7 +61,7 @@ class RiderController extends Controller
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         DB::transaction(function () use ($request) {
-            $rider = $request->only(['name', 'email', 'mobile']);
+            $rider = $request->only(['name', 'email', 'mobile', 'password']);
             $address = $request->only(['door_no', 'lanmark', 'address_line', 'latitude', 'longitude', 'pincode']);
             $bank = $request->only(['bank_name', 'account_number', 'account_type', 'ifsc_code', 'holder_name']);
             $vehicle = [
@@ -75,8 +76,10 @@ class RiderController extends Controller
                 'bank_id' => $bankDetail->id,
                 'address_id' => $addressDetail->id,
                 'vehicle_id'  => $vehicle->id,
-                'created_by' => 1, 'password' => env(Constants::RIDER_PASSWORD)
+                'created_by' => 1
             )));
+            // assign the role to the created user #roles
+            $rider->assignRole(Constants::RIDER_ROLE);
             $bankDetail->user_id = $rider->id;
             $addressDetail->user_id = $rider->id;
             $bankDetail->save();
@@ -119,5 +122,11 @@ class RiderController extends Controller
         });
 
         return $this->successResponse(true, "", Constants::UPDATED_SUCCESS);
+    }
+
+    public function assignedOrders($id)
+    {
+        $rider = Orders::with(['details.menu', 'status', 'payments', 'customers', 'address'])->orderBy('id', 'desc')->where('rider_id', $id)->paginate(10);
+        return $this->successResponse(true, $rider, Constants::GET_SUCCESS);
     }
 }

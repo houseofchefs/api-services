@@ -6,6 +6,7 @@ use App\Constants\Constants;
 use App\Constants\HTTPStatusCode;
 use App\Http\Controllers\Controller;
 use App\Models\Address;
+use App\Models\Customers;
 use App\Models\Menu;
 use App\Models\OrderDetails;
 use App\Models\Orders;
@@ -104,7 +105,14 @@ class OrderController extends Controller
                 "created_at"            => Carbon::now()
             ];
         }
-
+        // Reduce if the points used by the customer
+        if ($request->get('usePoints')) {
+            $customer = Customers::where('id', $request->customer_id)->first();
+            if ($customer && $customer->points > 0 && $request->get('points') <= $customer->points) {
+                $customer->points = $customer->points - $request->get('points');
+                $customer->save();
+            }
+        }
         $payment = Payment::create($paymentData);
         $address = Address::where('id', $request->address_id)->first();
         $order['address'] = $address;
