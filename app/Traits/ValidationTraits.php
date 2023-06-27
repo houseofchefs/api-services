@@ -273,7 +273,8 @@ trait ValidationTraits
             "address_id"    => 'required_unless:latitude,""',
             "longtitude"    => 'required_without:address_id',
             "latitude"      => 'required_without:address_id',
-            "cod"           => 'required'
+            "cod"           => 'required',
+            "expected_delivery" => "required"
         ];
     }
 
@@ -464,7 +465,6 @@ trait ValidationTraits
     {
         return [
             "vendor_id"     => 'required',
-            "booking_date"  => 'required',
             "address_id"    => 'required',
             "price"         => 'required',
             "items"         => 'required',
