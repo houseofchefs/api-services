@@ -33,11 +33,11 @@ trait ValidationTraits
     protected function adminSignUpValidator(): array
     {
         return [
-            'mobile'    => 'required|min:8|max:16|unique:users,mobile',
+            'mobile'    => 'required|numeric|min:8|max:16|unique:users,mobile',
             "name"      => 'required|max:30',
             "password"  => 'required',
             "role"      => 'required',
-            "email"     => 'required'
+            "email"     => 'required|email|unique:users,email'
         ];
     }
 
@@ -46,11 +46,12 @@ trait ValidationTraits
         return [
             'mobile'    => [
                 'required',
+                'numeric',
                 'min:8',
                 'max:16', Rule::unique('users')->ignore($id),
             ],
             "name"      => 'required|max:30',
-            "email"     => 'required'
+            "email"     => ['required', 'email', Rule::unique('users')->ignore($id)]
         ];
     }
 
@@ -362,19 +363,19 @@ trait ValidationTraits
     {
         return [
             'name'              => 'required|max:30',
-            'mobile'            => 'required|unique:vendors,mobile',
-            'email'             => 'required|unique:vendors,email',
+            'mobile'            => 'required|unique:vendors,mobile|numeric',
+            'email'             => 'required|unique:vendors,email|email',
             'image'             => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'door_no'           => 'required',
-            'account_number'    => 'required|max:16',
+            'account_number'    => 'required|numeric',
             'account_type'      => 'required',
             'bank_name'         => 'required',
             'holder_name'       => 'required',
             'ifsc_code'         => 'required:max:14',
             'address_line'      => 'required',
-            "open_time"         => 'required',
-            "close_time"        => 'required',
-            'order_accept_time' => 'required'
+            "open_time"         => 'required|date_format:H:i:s',
+            "close_time"        => 'required|date_format:H:i:s',
+            'order_accept_time' => 'required|date_format:H:i:s'
         ];
     }
 
@@ -385,19 +386,19 @@ trait ValidationTraits
     {
         return [
             'name'              => 'required|max:30',
-            'mobile'            => ['required', Rule::unique('vendors')->ignore($id)],
-            'email'             => ['required', Rule::unique('vendors')->ignore($id)],
+            'mobile'            => ['required', 'numeric', Rule::unique('vendors')->ignore($id)],
+            'email'             => ['required', 'email', Rule::unique('vendors')->ignore($id)],
             'door_no'           => 'required',
-            'account_number'    => 'required|max:16',
+            'account_number'    => 'required|numeric',
             'image'             => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'account_type'      => 'required',
             'bank_name'         => 'required',
             'holder_name'       => 'required',
             'ifsc_code'         => 'required:max:14',
             'address_line'      => 'required',
-            "open_time"         => 'required',
-            "close_time"        => 'required',
-            'order_accept_time' => 'required'
+            "open_time"         => 'required|date_format:H:i:s',
+            "close_time"        => 'required|date_format:H:i:s',
+            'order_accept_time' => 'required|date_format:H:i:s'
         ];
     }
 
