@@ -257,6 +257,7 @@ class NearByController extends Controller
                 'menus.image',
                 'vendors.name as vendor_name',
                 'menus.units',
+                'menus.isPreOrder',
                 'vendors.latitude',
                 'vendors.longitude',
                 'vendors.rating',

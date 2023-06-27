@@ -137,7 +137,7 @@ class DetailsController extends Controller
      */
     public function customerAddressList(string $id, string $guard)
     {
-        $address = DB::table('address')->where('user_id', $id)->where('guard', $guard)->select('id', 'place_id', 'door_no', 'lanmark', 'address_line', 'address_type', 'pincode', 'latitude', 'longitude')->get();
+        $address = DB::table('address')->where('user_id', $id)->where('guard', $guard)->select('id', 'door_no', 'lanmark', 'address_line', 'address_type', 'pincode', 'latitude', 'longitude')->get();
         return $this->successResponse(true, $address, $this->constant::GET_SUCCESS);
     }
 

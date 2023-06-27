@@ -156,6 +156,7 @@ trait CommonQueries
                 'vendors.id as vendor_id',
                 'menus.description',
                 'menus.name',
+                'menus.isPreOrder',
                 'menus.isDaily',
                 'vendors.name as vendorName',
                 'categories.name as categoryName',

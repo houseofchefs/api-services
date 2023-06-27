@@ -20,25 +20,12 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use PhpParser\Node\Expr\New_;
 use Razorpay\Api\Api;
 
 class OrderController extends Controller
 {
-    private $constant;
-
-    private $http;
 
     use ValidationTraits, ResponseTraits, CommonQueries;
-
-    /**
-     * constructor $middleware
-     */
-    public function __construct()
-    {
-        $this->constant = new Constants();
-        $this->http = new HTTPStatusCode();
-    }
 
     /**
      * @api createOrder
@@ -48,9 +35,9 @@ class OrderController extends Controller
     {
         $validator = Validator::make($request->all(), $this->createOrderValidator());
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
         //Modules #id
-        $module = $this->getModuleIdBasedOnCode($this->constant::ORDER_SUCCESS);
+        $module = $this->getModuleIdBasedOnCode(Constants::ORDER_SUCCESS);
         $count = Orders::count();
         $order = Orders::create(array_merge(
             $request->except('product_id'),
@@ -117,7 +104,7 @@ class OrderController extends Controller
         $address = Address::where('id', $request->address_id)->first();
         $order['address'] = $address;
         $order['payment'] = $payment;
-        return $this->successResponse(true, $order, $this->constant::ORDER_CREATED, $this->http::CREATED);
+        return $this->successResponse(true, $order, Constants::ORDER_CREATED, HTTPStatusCode::CREATED);
     }
 
     /**
@@ -129,7 +116,7 @@ class OrderController extends Controller
         $order = Orders::when($request->get('type') == "reviews", function ($q) {
             $q->where('isRated', 1);
         })->with(['details.menu', 'status', 'payments.status', 'customers', 'vendor'])->orderBy('id', 'desc')->paginate(10);
-        return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $order, Constants::GET_SUCCESS);
     }
 
     /**
@@ -139,51 +126,51 @@ class OrderController extends Controller
     public function orderDetails(String $id)
     {
         $order = Orders::with(['details.menu', 'status', 'address', 'payments.status'])->where('id', $id)->first();
-        return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $order, Constants::GET_SUCCESS);
     }
 
     public function orderListForCustomer()
     {
         # code...
-        $auth = auth($this->constant::CUSTOMER_GUARD)->user()->id;
+        $auth = auth(Constants::CUSTOMER_GUARD)->user()->id;
         $order = Orders::where('customer_id', $auth)->with(['status', 'payments.status', 'details.menu', 'vendor'])->orderBy('id', 'desc')->paginate(10);
-        return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $order, Constants::GET_SUCCESS);
     }
 
     public function orderCancel(String $id)
     {
         $modules = $this->getModuleIdBasedOnCode('OS03');
         $order = Orders::where('id', $id)->update(['status' => $modules]);
-        return $this->successResponse(true, $order, $this->constant::UPDATED_SUCCESS);
+        return $this->successResponse(true, $order, Constants::UPDATED_SUCCESS);
     }
 
     public function vendorBasedOrderList($id, $code)
     {
         $modules = $this->getModuleIdBasedOnCode($code);
         $order = Orders::with(['customers', 'payments.status', 'details.menu', 'vendor', 'address', 'status'])->where('vendor_id', $id)->where('status', $modules)->orderBy('id', 'desc')->paginate(10);
-        return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $order, Constants::GET_SUCCESS);
     }
 
     public function customerBasedOrderList($code)
     {
         $modules = $this->getModuleIdBasedOnCode($code);
-        $id = auth($this->constant::CUSTOMER_GUARD)->user()->id;
+        $id = auth(Constants::CUSTOMER_GUARD)->user()->id;
         $order = Orders::with(['customers', 'payments.status', 'details.menu', 'vendor', 'address', 'status'])->where('customer_id', $id)->where('status', $modules)->orderBy('id', 'desc')->paginate(10);
-        return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $order, Constants::GET_SUCCESS);
     }
 
     public function nextAction($id, $code)
     {
         $modules = $this->getModuleIdBasedOnCode($code);
         $order = Orders::where('id', $id)->update(['status' => $modules]);
-        return $this->successResponse(true, $order, $this->constant::UPDATED_SUCCESS);
+        return $this->successResponse(true, $order, Constants::UPDATED_SUCCESS);
     }
 
     public function updatePayment(Request $request, $id)
     {
         $validator = Validator::make($request->all(), $this->updatePaymentValidator());
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         $payment = Payment::where("order_id", $id)->where('razorpay_order_id', $request->razorpay_order_id)->first();
         $order = Orders::where("id", $id)->first();
@@ -202,13 +189,13 @@ class OrderController extends Controller
             $payment->payment_status = $request->capture ? $success : $cancel;
             $payment->save();
         }
-        return $this->successResponse(true, $payment, $this->constant::UPDATED_SUCCESS);
+        return $this->successResponse(true, $payment, Constants::UPDATED_SUCCESS);
     }
 
     public function getOrderReviewList($id)
     {
         $order = Orders::where('id', $id)->with(['details.menu', 'vendor'])->first();
-        return $this->successResponse(true, $order, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $order, Constants::GET_SUCCESS);
     }
 
     public function orderRating(Request $request, $id)
@@ -256,6 +243,6 @@ class OrderController extends Controller
         }
         Orders::where('id', $id)->update(['isRated' => 1]);
 
-        return $this->successResponse(true, "", $this->constant::UPDATED_SUCCESS);
+        return $this->successResponse(true, "", Constants::UPDATED_SUCCESS);
     }
 }
