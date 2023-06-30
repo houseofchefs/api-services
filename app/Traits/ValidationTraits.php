@@ -109,7 +109,7 @@ trait ValidationTraits
             'bank_name'         => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'holder_name'       => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'ifsc_code'         => 'required|max:14||regex:/^[a-zA-Z0-9]+$/',
-            'address_line'      => 'required|regex:/^[a-zA-Z0-9\s,]+$/',
+            'address_line'      => 'required',
             'insurance_number'  => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'registration_number' => 'required',
             'password'          => 'required'
@@ -128,7 +128,7 @@ trait ValidationTraits
             'bank_name'         => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'holder_name'       => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'ifsc_code'         => 'required|max:14|regex:/^[a-zA-Z0-9]+$/',
-            'address_line'      => 'required|regex:/^[a-zA-Z0-9\s,]+$/',
+            'address_line'      => 'required',
             'insurance_number'  => 'required',
             'registration_number' => 'required',
             'status'            => 'required'
@@ -286,7 +286,7 @@ trait ValidationTraits
         return [
             "user_id"       => 'required',
             "door_no"       => "required|regex:/^[a-zA-Z0-9\s]+$/",
-            "address_line"  => "required|regex:/^[a-zA-Z0-9\s,]+$/",
+            "address_line"  => "required",
             "address_type"  => "required",
             "pincode"       => "required|numeric",
             "latitude"      => "required",
@@ -373,7 +373,7 @@ trait ValidationTraits
             'bank_name'         => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'holder_name'       => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'ifsc_code'         => 'required:max:14|regex:/^[a-zA-Z0-9]+$/',
-            'address_line'      => 'required|regex:/^[a-zA-Z0-9\s,]+$/',
+            'address_line'      => 'required',
             "open_time"         => 'required|date_format:H:i:s',
             "close_time"        => 'required|date_format:H:i:s',
             'order_accept_time' => 'required|date_format:H:i:s'
@@ -396,7 +396,7 @@ trait ValidationTraits
             'bank_name'         => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'holder_name'       => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'ifsc_code'         => 'required:max:14|regex:/^[a-zA-Z0-9]+$/',
-            'address_line'      => 'required|regex:/^[a-zA-Z0-9\s,]+$/',
+            'address_line'      => 'required',
             "open_time"         => 'required|date_format:H:i:s',
             "close_time"        => 'required|date_format:H:i:s',
             'order_accept_time' => 'required|date_format:H:i:s'

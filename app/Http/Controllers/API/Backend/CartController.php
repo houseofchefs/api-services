@@ -6,26 +6,16 @@ use App\Constants\Constants;
 use App\Constants\HTTPStatusCode;
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
+use App\Models\CategoryHasSlot;
 use Illuminate\Http\Request;
 use App\Traits\ResponseTraits;
 use App\Traits\ValidationTraits;
 use App\Traits\CommonQueries;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class CartController extends Controller
 {
-
-    private $constant;
-
-    private $http;
-
-    public function __construct()
-    {
-        $this->constant = new Constants();
-        $this->http = new HTTPStatusCode();
-        // $this->middleware(['auth:customer', 'role:customer']);
-    }
-
     use ResponseTraits, ValidationTraits, CommonQueries;
 
     /**
@@ -33,8 +23,40 @@ class CartController extends Controller
      */
     public function index()
     {
-        $cart = Cart::where('user_id',auth(Constants::CUSTOMER_GUARD)->user()->id)->with(['menu', 'user', 'vendor'])->paginate(10);
-        return $this->successResponse(true, $cart, $this->constant::GET_SUCCESS, $this->http::OK);
+        $userId = auth(Constants::CUSTOMER_GUARD)->user()->id;
+
+        $cart = DB::table('cart')
+            ->where('user_id', $userId)
+            ->join('menus', 'cart.menu_id', '=', 'menus.id')
+            ->join('customers', 'cart.user_id', '=', 'customers.id')
+            ->join('vendors', 'cart.vendor_id', '=', 'vendors.id')
+            ->leftJoin('categories_has_slot', 'menus.category_id', '=', 'categories_has_slot.category_id')
+            ->select(
+                'cart.id as id',
+                'cart.quantity as quantity',
+                'menus.image as image',
+                'menus.name as menu_id',
+                'menus.name as menu_name',
+                'menus.price as price',
+                'customers.name as customer_name',
+                'customers.id as customer_id',
+                'vendors.id as vendor_id',
+                'vendors.name as vendor_name',
+                'menus.category_id as category_id'
+            )
+            ->paginate(10);
+
+        foreach ($cart as $item) {
+            $slot = DB::table('categories_has_slot')
+                ->where('category_id', $item->category_id)
+                ->leftJoin('modules', 'categories_has_slot.slot_id', '=', 'modules.id')
+                ->select('modules.module_name as slot_name','modules.description as description','modules.id as id')
+                ->get();
+
+            $item->slot = $slot;
+        }
+
+        return $this->successResponse(true, $cart, Constants::GET_SUCCESS, HTTPStatusCode::OK);
     }
 
     /**
@@ -53,18 +75,18 @@ class CartController extends Controller
         $validator = Validator::make($request->all(), $this->cartValidator());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
-        $id = auth()->guard($this->constant::CUSTOMER_GUARD)->user()->id;
+        $id = auth()->guard(Constants::CUSTOMER_GUARD)->user()->id;
         $exist = Cart::where('vendor_id', $request->vendor_id)->where('menu_id', $request->menu_id)->where('user_id', $id)->first();
-        if($exist) {
+        if ($exist) {
             $exist->quantity += $request->quantity;
             $exist->save();
-            return $this->successResponse(true, $exist, $this->constant::UPDATED_SUCCESS, $this->http::OK);
+            return $this->successResponse(true, $exist, Constants::UPDATED_SUCCESS, HTTPStatusCode::OK);
         }
         // create cart
         $cart = Cart::create(array_merge($request->all(), array('user_id' => $id)));
-        return $this->successResponse(true, $cart, $this->constant::CREATED_SUCCESS, $this->http::CREATED);
+        return $this->successResponse(true, $cart, Constants::CREATED_SUCCESS, HTTPStatusCode::CREATED);
     }
 
     /**
@@ -91,12 +113,12 @@ class CartController extends Controller
         $validator = Validator::make($request->all(), $this->cartUpdateValidator());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         $card = Cart::where('id', $id)->first();
         $card->quantity = $request->get('quantity');
         $card->save();
-        return $this->successResponse(true, "", $this->constant::UPDATED_SUCCESS, $this->http::OK);
+        return $this->successResponse(true, "", Constants::UPDATED_SUCCESS, HTTPStatusCode::OK);
     }
 
     /**
@@ -105,14 +127,15 @@ class CartController extends Controller
     public function destroy(string $id)
     {
         Cart::where('id', $id)->delete();
-        return $this->successResponse(true, "", $this->constant::GET_SUCCESS, $this->http::OK);
+        return $this->successResponse(true, "", Constants::GET_SUCCESS, HTTPStatusCode::OK);
     }
 
     /**
      * Remove customer based cart list
      */
-    public function customerCartRemove($id) {
+    public function customerCartRemove($id)
+    {
         Cart::where('user_id', $id)->delete();
-        return $this->successResponse(true, "", $this->constant::GET_SUCCESS, $this->http::OK);
+        return $this->successResponse(true, "", Constants::GET_SUCCESS, HTTPStatusCode::OK);
     }
 }

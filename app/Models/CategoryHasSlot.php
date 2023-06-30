@@ -17,4 +17,9 @@ class CategoryHasSlot extends Model
     protected $table = "categories_has_slot";
 
     public $timestamps = false;
+
+    public function slot()
+    {
+        return $this->belongsTo(Modules::class, 'slot_id', 'id');
+    }
 }
