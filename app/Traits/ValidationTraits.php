@@ -346,7 +346,8 @@ trait ValidationTraits
         return [
             'menu_id'   => 'required',
             'quantity'  => 'required',
-            'vendor_id'   => 'required'
+            'vendor_id' => 'required',
+            'slot_id'   => 'required'
         ];
     }
 

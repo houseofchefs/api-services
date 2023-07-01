@@ -30,31 +30,23 @@ class CartController extends Controller
             ->join('menus', 'cart.menu_id', '=', 'menus.id')
             ->join('customers', 'cart.user_id', '=', 'customers.id')
             ->join('vendors', 'cart.vendor_id', '=', 'vendors.id')
-            ->leftJoin('categories_has_slot', 'menus.category_id', '=', 'categories_has_slot.category_id')
+            ->join('modules', 'cart.slot_id', '=', 'modules.id')
             ->select(
                 'cart.id as id',
                 'cart.quantity as quantity',
                 'menus.image as image',
-                'menus.name as menu_id',
+                'menus.id as menu_id',
                 'menus.name as menu_name',
                 'menus.price as price',
                 'customers.name as customer_name',
                 'customers.id as customer_id',
                 'vendors.id as vendor_id',
                 'vendors.name as vendor_name',
-                'menus.category_id as category_id'
+                'menus.category_id as category_id',
+                'modules.description as timeslot',
+                'modules.module_name as slot_name'
             )
             ->paginate(10);
-
-        foreach ($cart as $item) {
-            $slot = DB::table('categories_has_slot')
-                ->where('category_id', $item->category_id)
-                ->leftJoin('modules', 'categories_has_slot.slot_id', '=', 'modules.id')
-                ->select('modules.module_name as slot_name','modules.description as description','modules.id as id')
-                ->get();
-
-            $item->slot = $slot;
-        }
 
         return $this->successResponse(true, $cart, Constants::GET_SUCCESS, HTTPStatusCode::OK);
     }
