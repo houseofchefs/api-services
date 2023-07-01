@@ -458,6 +458,7 @@ class NearByController extends Controller
                 'menus.name',
                 'menus.isDaily',
                 'vendors.name as vendorName',
+                'categories.id as category_id',
                 'categories.name as categoryName',
                 'menus.rating',
                 'menus.ucount as ratingCount',
@@ -509,30 +510,45 @@ class NearByController extends Controller
     {
         $currentDateTime = Carbon::now();
         $discount = $this->getModuleIdBasedOnCode(Constants::DISCOUNT);
-        $overAllDiscount = DB::table("discounts")->where('vendor_id', 0)->where('status', 2)->where('expire_at', '>=', $currentDateTime)->where('type', $discount)->first();
-        foreach ($data as $subData) {
+        $overAllDiscount = DB::table("discounts")
+            ->where('vendor_id', 0)
+            ->where('status', 2)
+            ->where('expire_at', '>=', $currentDateTime)
+            ->where('type', $discount)
+            ->first();
+
+        $particularDiscounts = DB::table("discounts")
+            ->whereIn('vendor_id', array_column($data, 'vendor_id'))
+            ->where('status', 2)
+            ->where('expire_at', '>=', $currentDateTime)
+            ->where('type', $discount)
+            ->get()
+            ->keyBy('vendor_id');
+
+        $overallDiscountCategoryId = $overAllDiscount ? $overAllDiscount->category_id : null;
+
+        for ($i = 0; $i < count($data); $i++) {
+            $subData = $data[$i];
             $destination = $subData->latitude . ',' . $subData->longitude;
             $google = $this->getDistance($origin, $destination);
             $subData->distance = $google['distance']['text'];
             $subData->time = $google['duration']['text'];
-            // Discounts
-            $particularDiscount = DB::table("discounts")->where('vendor_id', $subData->vendor_id)->where('status', 2)->where('expire_at', '>=', $currentDateTime)->where('type', $discount)->first();
-            if ($particularDiscount) {
-                if ($particularDiscount->category_id == 0) {
-                    $subData->discount_percentage = $particularDiscount->percentage;
-                } else if ($particularDiscount->category_id == $subData->category_id) {
-                    $subData->discount_percentage = $particularDiscount->percentage;
-                } else if ($overAllDiscount && $overAllDiscount->category_id == 0) {
-                    $subData->discount_percentage = $overAllDiscount->percentage;
-                } else if ($overAllDiscount && $overAllDiscount->category_id == $subData->category_id) {
+
+            $vendorId = $subData->vendor_id;
+            $categoryDiscount = $particularDiscounts->get($vendorId);
+
+            if ($categoryDiscount) {
+                if ($categoryDiscount->category_id == 0 || $categoryDiscount->category_id == $subData->category_id) {
+                    $subData->discount_percentage = $categoryDiscount->percentage;
+                } else {
+                    $subData->discount_percentage = 0;
+                }
+            } else if ($overAllDiscount) {
+                if ($overAllDiscount->category_id == 0 || $overAllDiscount->category_id == $subData->category_id) {
                     $subData->discount_percentage = $overAllDiscount->percentage;
                 } else {
                     $subData->discount_percentage = 0;
                 }
-            } else if ($overAllDiscount && $overAllDiscount->category_id == 0) {
-                $subData->discount_percentage = $overAllDiscount->percentage;
-            } else if ($overAllDiscount && $overAllDiscount->category_id == $subData->category_id) {
-                $subData->discount_percentage = $overAllDiscount->percentage;
             } else {
                 $subData->discount_percentage = 0;
             }
@@ -544,7 +560,53 @@ class NearByController extends Controller
             } else {
                 $subData->discounted_price = 0;
             }
+
+            $data[$i] = $subData;
         }
+
         return $data;
     }
+
+    // private function addDistanceAndTime($data, $origin): mixed
+    // {
+    //     $currentDateTime = Carbon::now();
+    //     $discount = $this->getModuleIdBasedOnCode(Constants::DISCOUNT);
+    //     $overAllDiscount = DB::table("discounts")->where('vendor_id', 0)->where('status', 2)->where('expire_at', '>=', $currentDateTime)->where('type', $discount)->first();
+    //     foreach ($data as $subData) {
+    //         $destination = $subData->latitude . ',' . $subData->longitude;
+    //         $google = $this->getDistance($origin, $destination);
+    //         $subData->distance = $google['distance']['text'];
+    //         $subData->time = $google['duration']['text'];
+    //         // Discounts
+    //         $particularDiscount = DB::table("discounts")->where('vendor_id', $subData->vendor_id)->where('status', 2)->where('expire_at', '>=', $currentDateTime)->where('type', $discount)->first();
+    //         if ($particularDiscount) {
+    //             if ($particularDiscount->category_id == 0) {
+    //                 $subData->discount_percentage = $particularDiscount->percentage;
+    //             } else if ($particularDiscount->category_id == $subData->category_id) {
+    //                 $subData->discount_percentage = $particularDiscount->percentage;
+    //             } else if ($overAllDiscount && $overAllDiscount->category_id == 0) {
+    //                 $subData->discount_percentage = $overAllDiscount->percentage;
+    //             } else if ($overAllDiscount && $overAllDiscount->category_id == $subData->category_id) {
+    //                 $subData->discount_percentage = $overAllDiscount->percentage;
+    //             } else {
+    //                 $subData->discount_percentage = 0;
+    //             }
+    //         } else if ($overAllDiscount && $overAllDiscount->category_id == 0) {
+    //             $subData->discount_percentage = $overAllDiscount->percentage;
+    //         } else if ($overAllDiscount && $overAllDiscount->category_id == $subData->category_id) {
+    //             $subData->discount_percentage = $overAllDiscount->percentage;
+    //         } else {
+    //             $subData->discount_percentage = 0;
+    //         }
+
+    //         if ($subData->discount_percentage != 0) {
+    //             $percentage = $subData->discount_percentage / 100;
+    //             $discountPrice = $subData->price * $percentage;
+    //             $subData->discounted_price = $subData->price - $discountPrice;
+    //         } else {
+    //             $subData->discounted_price = 0;
+    //         }
+    //     }
+    //     return $data;
+    // }
 }
