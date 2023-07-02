@@ -44,7 +44,8 @@ class CartController extends Controller
                 'vendors.name as vendor_name',
                 'menus.category_id as category_id',
                 'modules.description as timeslot',
-                'modules.module_name as slot_name'
+                'modules.module_name as slot_name',
+                'modules.id as slot_id'
             )
             ->paginate(10);
 
