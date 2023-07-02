@@ -570,9 +570,11 @@ class NearByController extends Controller
     private function addDistanceAndTime($data, $origin): mixed
     {
         $currentDateTime = Carbon::now();
+        $currentTime = Carbon::now()->format('H:i:s');
         $discount = $this->getModuleIdBasedOnCode(Constants::DISCOUNT);
         $overAllDiscount = DB::table("discounts")->where('vendor_id', 0)->where('status', 2)->where('expire_at', '>=', $currentDateTime)->where('type', $discount)->first();
         foreach ($data as $subData) {
+            $subData->vendor_closed =  Carbon::parse($currentTime)->gt($subData->close_time);
             $destination = $subData->latitude . ',' . $subData->longitude;
             $google = $this->getDistance($origin, $destination);
             $subData->distance = $google['distance']['text'];

@@ -87,9 +87,12 @@ trait CommonQueries
         return $randomString;
     }
 
-    protected function categoriesCommonQuery()
+    protected function categoriesCommonQuery($id = null)
     {
         return DB::table('categories')
+            ->when($id != null, function ($subQ) use ($id) {
+                return $subQ->where('categories.id', $id);
+            })
             ->join('users', 'categories.created_by', '=', 'users.id')
             ->join('modules', 'categories.status', '=', 'modules.id')
             ->leftJoin('vendors', 'categories.vendor_id', '=', 'vendors.id')

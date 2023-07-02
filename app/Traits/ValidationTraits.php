@@ -33,7 +33,7 @@ trait ValidationTraits
     protected function adminSignUpValidator(): array
     {
         return [
-            'mobile'    => 'required|numeric|min:8|max:16|unique:users,mobile',
+            'mobile'    => 'required|numeric|unique:users,mobile',
             "name"      => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             "password"  => 'required',
             "role"      => 'required',
@@ -46,9 +46,7 @@ trait ValidationTraits
         return [
             'mobile'    => [
                 'required',
-                'numeric',
-                'min:8',
-                'max:16', Rule::unique('users')->ignore($id),
+                'numeric', Rule::unique('users')->ignore($id),
             ],
             "name"      => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             "email"     => ['required', 'email', Rule::unique('users')->ignore($id)]
@@ -103,7 +101,7 @@ trait ValidationTraits
             'name'              => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             'mobile'            => 'required|unique:riders,mobile',
             'email'             => 'required|unique:riders,email',
-            'door_no'           => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'door_no'           => 'required|regex:/^[a-zA-Z0-9\s,\/]+$/',
             'account_number'    => 'required|max:16',
             'account_type'      => 'required',
             'bank_name'         => 'required|regex:/^[a-zA-Z0-9\s]+$/',
@@ -122,7 +120,7 @@ trait ValidationTraits
             'name'              => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             'mobile'            => ['required', Rule::unique('riders')->ignore($id)],
             'email'             => ['required', Rule::unique('riders')->ignore($id)],
-            'door_no'           => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'door_no'           => 'required|regex:/^[a-zA-Z0-9\s,\/]+$/',
             'account_number'    => 'required|max:16',
             'account_type'      => 'required',
             'bank_name'         => 'required|regex:/^[a-zA-Z0-9\s]+$/',
@@ -271,7 +269,7 @@ trait ValidationTraits
             "price"         => 'required|numeric',
             "customer_id"   => 'required|numeric',
             "vendor_id"     => 'required|numeric',
-            "product_id"    => 'required|numeric',
+            "product_id"    => 'required',
             "address_id"    => 'required_unless:latitude,""',
             "longtitude"    => 'required_without:address_id',
             "latitude"      => 'required_without:address_id',
@@ -367,7 +365,7 @@ trait ValidationTraits
             'mobile'            => 'required|unique:vendors,mobile|numeric',
             'email'             => 'required|unique:vendors,email|email',
             'image'             => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            'door_no'           => 'required|regex:/^[a-zA-Z0-9]+$/',
+            'door_no'           => 'required|regex:/^[a-zA-Z0-9\s,\/]+$/',
             'account_number'    => 'required|numeric',
             'account_type'      => 'required',
             'bank_name'         => 'required|regex:/^[a-zA-Z0-9\s]+$/',
@@ -389,7 +387,7 @@ trait ValidationTraits
             'name'              => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             'mobile'            => ['required', 'numeric', Rule::unique('vendors')->ignore($id)],
             'email'             => ['required', 'email', Rule::unique('vendors')->ignore($id)],
-            'door_no'           => 'required|regex:/^[a-zA-Z0-9]+$/',
+            'door_no'           => 'required|regex:/^[a-zA-Z0-9\s,\/]+$/',
             'account_number'    => 'required|numeric',
             'image'             => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'account_type'      => 'required',
@@ -473,7 +471,8 @@ trait ValidationTraits
             "latitude"      => 'required',
             "longitude"     => 'required',
             "slot_id"       => 'required',
-            "cod"           => 'required'
+            "cod"           => 'required',
+            "expected_delivery" => 'required'
         ];
     }
 

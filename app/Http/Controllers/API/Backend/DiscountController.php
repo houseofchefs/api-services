@@ -25,7 +25,7 @@ class DiscountController extends Controller
     public function index()
     {
         $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
-        $discount = Discount::with(['vendor', 'status', 'type'])->orderBy('id', 'desc')->paginate(10);
+        $discount = Discount::with(['vendor', 'status', 'type', 'category'])->orderBy('id', 'desc')->paginate(10);
         // $discount = DB::table('discounts')
         // ->where([
         //     ['discounts.status', $status],
