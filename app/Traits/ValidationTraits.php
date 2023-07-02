@@ -277,7 +277,7 @@ trait ValidationTraits
             "latitude"      => 'required_without:address_id',
             "cod"           => 'required',
             "expected_delivery" => "required|date",
-            "instructions"  => '|regex:/^[a-zA-Z0-9\s]+$/'
+            "instructions"  => 'regex:/^[a-zA-Z0-9\s]+$/'
         ];
     }
 
@@ -285,7 +285,7 @@ trait ValidationTraits
     {
         return [
             "user_id"       => 'required',
-            "door_no"       => "required|regex:/^[a-zA-Z0-9\s]+$/",
+            "door_no"       => "required|regex:/^[a-zA-Z0-9\s,\/]+$/",
             "address_line"  => "required",
             "address_type"  => "required",
             "pincode"       => "required|numeric",
