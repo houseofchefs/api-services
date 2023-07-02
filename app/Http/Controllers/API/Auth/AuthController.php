@@ -37,7 +37,7 @@ class AuthController extends Controller
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         // Create Admin User
-        $user = User::create(array_merge($request->only([Constants::NAME, Constants::MOBILE, Constants::PASSWORD, Constants::EMAIL])));
+        $user = User::create(array_merge($request->only([Constants::NAME, Constants::MOBILE, Constants::PASSWORD, Constants::EMAIL]), ['status' => 2]));
 
         // assign the role to the created user #roles
         $user->assignRole($request->role);
