@@ -288,7 +288,6 @@ trait ValidationTraits
             "door_no"       => "required|regex:/^[a-zA-Z0-9\s,\/]+$/",
             "address_line"  => "required",
             "address_type"  => "required",
-            "pincode"       => "required|numeric",
             "latitude"      => "required",
             "longitude"     => "required",
             "guard"         => "required"
