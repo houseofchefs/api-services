@@ -40,7 +40,9 @@ trait ValidationTraits
             "email"     => 'required|email|unique:users,email'
         ];
     }
-
+    /**
+     * Update Admin Validator
+     */
     protected function updateAdminValidator($id): array
     {
         return [
