@@ -363,7 +363,7 @@ trait ValidationTraits
     protected function createVendorValidator(): array
     {
         return [
-            'name'              => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
+            'name'              => 'required|max:30|regex:/^[\'a-zA-Z0-9\s]+$/',
             'mobile'            => 'required|unique:vendors,mobile|numeric',
             'email'             => 'required|unique:vendors,email|email',
             'image'             => 'required|image|mimes:jpeg,png,jpg|max:2048',
@@ -372,12 +372,13 @@ trait ValidationTraits
             'account_type'      => 'required',
             'bank_name'         => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'holder_name'       => 'required|regex:/^[a-zA-Z0-9\s]+$/',
-            'ifsc_code'         => 'required:max:14|regex:/^[a-zA-Z0-9]+$/',
+            'ifsc_code'         => 'required|max:14|regex:/^[a-zA-Z0-9]+$/',
             'address_line'      => 'required',
-            "open_time"         => 'required|date_format:H:i:s',
-            "close_time"        => 'required|date_format:H:i:s',
-            'order_accept_time' => 'required|date_format:H:i:s'
+            'open_time'         => 'required|date_format:H:i:s',
+            'close_time'        => 'required|date_format:H:i:s',
+            'order_accept_time' => 'required|date_format:H:i:s|before:close_time'
         ];
+
     }
 
     /**
@@ -386,7 +387,7 @@ trait ValidationTraits
     protected function updateVendorValidator($id): array
     {
         return [
-            'name'              => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
+            'name'              => 'required|max:30|regex:/^[\'a-zA-Z0-9\s]+$/',
             'mobile'            => ['required', 'numeric', Rule::unique('vendors')->ignore($id)],
             'email'             => ['required', 'email', Rule::unique('vendors')->ignore($id)],
             'door_no'           => 'required|regex:/^[a-zA-Z0-9\s,\/]+$/',
@@ -399,7 +400,7 @@ trait ValidationTraits
             'address_line'      => 'required',
             "open_time"         => 'required|date_format:H:i:s',
             "close_time"        => 'required|date_format:H:i:s',
-            'order_accept_time' => 'required|date_format:H:i:s'
+            'order_accept_time' => 'required|date_format:H:i:s|before:close_time'
         ];
     }
 

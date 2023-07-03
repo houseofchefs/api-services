@@ -178,11 +178,11 @@ class NearByController extends Controller
         $withinVendor = $this->vendorWithInTheRadius($latitude, $longitude, $radius);
 
         $data =  $this->slotBasedMenus($request->get('slot'), $status, $withinVendor)
-            ->where(function ($subQ) use ($request, $currentTime) {
-                $subQ->where(function ($subQ2) use ($request) {
+            ->where(function ($subQ) use ($currentTime) {
+                $subQ->where(function ($subQ2) {
                     // Handle when isPreOrder is true (not checking order_accept_time)
                     $subQ2->where('menus.isPreOrder', 1);
-                })->orWhere(function ($subQ3) use ($request, $currentTime) {
+                })->orWhere(function ($subQ3) use ($currentTime) {
                     // Handle when isPreOrder is false (checking order_accept_time)
                     $subQ3->where('menus.isPreOrder', 0)
                         ->where('vendors.order_accept_time', '>', $currentTime)
