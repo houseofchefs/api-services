@@ -155,7 +155,8 @@ class NearByController extends Controller
                 } else {
                     // Handle when isPreOrder is false (checking order_accept_time)
                     $q->where('menus.isPreOrder', 0)
-                        ->where('vendors.order_accept_time', '>', $currentTime);
+                        ->where('vendors.order_accept_time', '>', $currentTime)
+                        ->where('vendors.open_time', '<', $currentTime);
                 }
             })
             ->paginate(10);
@@ -184,7 +185,8 @@ class NearByController extends Controller
                 })->orWhere(function ($subQ3) use ($request, $currentTime) {
                     // Handle when isPreOrder is false (checking order_accept_time)
                     $subQ3->where('menus.isPreOrder', 0)
-                        ->where('vendors.order_accept_time', '>', $currentTime);
+                        ->where('vendors.order_accept_time', '>', $currentTime)
+                        ->where('vendors.open_time', '<', $currentTime);
                 });
             })
             ->when($request->get('search') != null, function ($subQ) use ($request) {
@@ -418,7 +420,8 @@ class NearByController extends Controller
                 })->orWhere(function ($subQ3) use ($request, $currentTime) {
                     // Handle when isPreOrder is false (checking order_accept_time)
                     $subQ3->where('menus.isPreOrder', 0)
-                        ->where('vendors.order_accept_time', '>', $currentTime);
+                        ->where('vendors.order_accept_time', '>', $currentTime)
+                        ->where('vendors.open_time', '<', $currentTime);
                 });
             })
             ->whereIn('menus.vendor_id', $withinVendor)
@@ -487,7 +490,8 @@ class NearByController extends Controller
                 })->orWhere(function ($subQ3) use ($request, $currentTime) {
                     // Handle when isPreOrder is false (checking order_accept_time)
                     $subQ3->where('menus.isPreOrder', 0)
-                        ->where('vendors.order_accept_time', '>', $currentTime);
+                        ->where('vendors.order_accept_time', '>', $currentTime)
+                        ->where('vendors.open_time', '<', $currentTime);
                 });
             })
             ->when($request->get('slot') != 0, function ($q) use ($request) {
