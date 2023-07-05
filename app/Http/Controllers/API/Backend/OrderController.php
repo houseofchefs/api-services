@@ -35,7 +35,16 @@ class OrderController extends Controller
     {
         $validator = Validator::make($request->all(), $this->createOrderValidator());
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
+        // if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
+        $agent = $request->userAgent();
+        if ($validator->fails()) {
+            if (str_contains($agent, 'Mobile')) {
+                $errors = $validator->errors();
+                $errorResponse['error'] = $errors->first();
+                return $this->errorResponse(false, $errors->first(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
+            }
+            return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
+        }
         //Modules #id
         $module = $this->getModuleIdBasedOnCode(Constants::ORDER_SUCCESS);
         $count = Orders::count();
