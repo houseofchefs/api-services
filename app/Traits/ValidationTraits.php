@@ -268,7 +268,7 @@ trait ValidationTraits
     protected function createOrderValidator(): array
     {
         return [
-            "price"         => 'required|numeric',
+            "price"         => 'required',
             "customer_id"   => 'required|numeric',
             "vendor_id"     => 'required|numeric',
             "product_id"    => 'required',
