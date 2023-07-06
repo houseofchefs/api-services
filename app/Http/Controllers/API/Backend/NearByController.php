@@ -429,6 +429,14 @@ class NearByController extends Controller
                 $subQ->where('menus.name', $request->get('search'));
             })
             ->distinct()->get();
+            foreach($data as $subData) {
+                if (!$subData->isDaily) {
+                    $subData->day = DB::table('menu_available_days')
+                        ->where('menu_id', $subData->id)
+                        ->pluck('day')
+                        ->toArray();
+                }
+            }
         return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
@@ -583,6 +591,12 @@ class NearByController extends Controller
             $google = $this->getDistance($origin, $destination);
             $subData->distance = $google['distance']['text'];
             $subData->time = $google['duration']['text'];
+            if (!$subData->isDaily) {
+                $subData->day = DB::table('menu_available_days')
+                    ->where('menu_id', $subData->id)
+                    ->pluck('day')
+                    ->toArray();
+            }
             // Discounts
             $particularDiscount = DB::table("discounts")->where('vendor_id', $subData->vendor_id)->where('status', 2)->where('expire_at', '>=', $currentDateTime)->where('type', $discount)->first();
             if ($particularDiscount) {
