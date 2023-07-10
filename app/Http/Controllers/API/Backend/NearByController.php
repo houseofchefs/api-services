@@ -112,6 +112,7 @@ class NearByController extends Controller
                 'vendors.longitude',
                 'vendors.close_time',
                 'vendors.open_time',
+                'vendors.order_accept_time',
                 'menus.name as name',
                 'menus.image as menu_image',
                 'menus.rating as rating',
