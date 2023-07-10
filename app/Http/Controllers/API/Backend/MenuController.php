@@ -180,7 +180,7 @@ class MenuController extends Controller
             $origin = $latitude . ',' . $longitude;
             $wishlist = DB::table('wishlists')
                 ->join('vendors', 'vendors.id', '=', 'wishlists.menu_id')
-                ->select('vendors.id as id', 'vendors.name as name',  'vendors.rating as rating', 'vendors.ucount as ratingCount', 'vendors.latitude as latitude', 'vendors.longitude as longitude')
+                ->select('vendors.id as id', 'vendors.name as name',  'vendors.rating as rating', 'vendors.image as image', 'vendors.ucount as ratingCount', 'vendors.latitude as latitude', 'vendors.longitude as longitude')
                 ->where('wishlists.customer_id', '=', $id)
                 ->where('wishlists.type', $request->type)
                 ->paginate(10);

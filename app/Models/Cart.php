@@ -14,6 +14,7 @@ class Cart extends Model
         'user_id',
         'menu_id',
         'vendor_id',
+        'slot_id',
         'quantity'
     ];
 

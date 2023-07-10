@@ -110,11 +110,15 @@ class NearByController extends Controller
                 'vendors.name as vendor_name',
                 'vendors.latitude',
                 'vendors.longitude',
+                'vendors.close_time',
+                'vendors.open_time',
                 'menus.name as name',
                 'menus.image as menu_image',
                 'menus.rating as rating',
                 'menus.ucount as count',
                 'menus.id as menu_id',
+                'menus.id as id',
+                'menus.isDaily as isDaily',
                 'menus.description as description',
                 'menus.category_id as category_id',
                 'menus.price as price',
@@ -148,15 +152,16 @@ class NearByController extends Controller
         $withinVendor = $this->vendorWithInTheRadius($latitude, $longitude, $radius);
 
         $data =  $this->slotBasedMenus($request->get('slot'), $status, $withinVendor)
-            ->when($request->get('isPreOrder') != null, function ($q) use ($request, $currentTime) {
-                if ($request->get('isPreOrder')) {
+            ->where(function ($subQ) use ($request, $currentTime) {
+                $subQ->where(function ($subQ2) use ($request) {
                     // Handle when isPreOrder is true (not checking order_accept_time)
-                    $q->where('menus.isPreOrder', 1);
-                } else {
+                    $subQ2->where('menus.isPreOrder', 1);
+                })->orWhere(function ($subQ3) use ($request, $currentTime) {
                     // Handle when isPreOrder is false (checking order_accept_time)
-                    $q->where('menus.isPreOrder', 0)
-                        ->where('vendors.order_accept_time', '>', $currentTime);
-                }
+                    $subQ3->where('menus.isPreOrder', 0)
+                        ->where('vendors.order_accept_time', '>', $currentTime)
+                        ->where('vendors.open_time', '<', $currentTime);
+                });
             })
             ->paginate(10);
         $data = $this->addDistanceAndTime($data, $origin);
@@ -177,14 +182,15 @@ class NearByController extends Controller
         $withinVendor = $this->vendorWithInTheRadius($latitude, $longitude, $radius);
 
         $data =  $this->slotBasedMenus($request->get('slot'), $status, $withinVendor)
-            ->where(function ($subQ) use ($request, $currentTime) {
-                $subQ->where(function ($subQ2) use ($request) {
+            ->where(function ($subQ) use ($currentTime) {
+                $subQ->where(function ($subQ2) {
                     // Handle when isPreOrder is true (not checking order_accept_time)
                     $subQ2->where('menus.isPreOrder', 1);
-                })->orWhere(function ($subQ3) use ($request, $currentTime) {
+                })->orWhere(function ($subQ3) use ($currentTime) {
                     // Handle when isPreOrder is false (checking order_accept_time)
                     $subQ3->where('menus.isPreOrder', 0)
-                        ->where('vendors.order_accept_time', '>', $currentTime);
+                        ->where('vendors.order_accept_time', '>', $currentTime)
+                        ->where('vendors.open_time', '<', $currentTime);
                 });
             })
             ->when($request->get('search') != null, function ($subQ) use ($request) {
@@ -257,6 +263,7 @@ class NearByController extends Controller
                 'menus.image',
                 'vendors.name as vendor_name',
                 'menus.units',
+                'menus.isPreOrder',
                 'vendors.latitude',
                 'vendors.longitude',
                 'vendors.rating',
@@ -417,7 +424,8 @@ class NearByController extends Controller
                 })->orWhere(function ($subQ3) use ($request, $currentTime) {
                     // Handle when isPreOrder is false (checking order_accept_time)
                     $subQ3->where('menus.isPreOrder', 0)
-                        ->where('vendors.order_accept_time', '>', $currentTime);
+                        ->where('vendors.order_accept_time', '>', $currentTime)
+                        ->where('vendors.open_time', '<', $currentTime);
                 });
             })
             ->whereIn('menus.vendor_id', $withinVendor)
@@ -425,6 +433,14 @@ class NearByController extends Controller
                 $subQ->where('menus.name', $request->get('search'));
             })
             ->distinct()->get();
+            foreach($data as $subData) {
+                if (!$subData->isDaily) {
+                    $subData->day = DB::table('menu_available_days')
+                        ->where('menu_id', $subData->id)
+                        ->pluck('day')
+                        ->toArray();
+                }
+            }
         return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
@@ -457,6 +473,7 @@ class NearByController extends Controller
                 'menus.name',
                 'menus.isDaily',
                 'vendors.name as vendorName',
+                'categories.id as category_id',
                 'categories.name as categoryName',
                 'menus.rating',
                 'menus.ucount as ratingCount',
@@ -485,7 +502,8 @@ class NearByController extends Controller
                 })->orWhere(function ($subQ3) use ($request, $currentTime) {
                     // Handle when isPreOrder is false (checking order_accept_time)
                     $subQ3->where('menus.isPreOrder', 0)
-                        ->where('vendors.order_accept_time', '>', $currentTime);
+                        ->where('vendors.order_accept_time', '>', $currentTime)
+                        ->where('vendors.open_time', '<', $currentTime);
                 });
             })
             ->when($request->get('slot') != 0, function ($q) use ($request) {
@@ -504,16 +522,85 @@ class NearByController extends Controller
      * @param $origin
      * @return mixed
      */
+    // private function addDistanceAndTime($data, $origin): mixed
+    // {
+    //     $currentDateTime = Carbon::now();
+    //     $discount = $this->getModuleIdBasedOnCode(Constants::DISCOUNT);
+    //     $overAllDiscount = DB::table("discounts")
+    //         ->where('vendor_id', 0)
+    //         ->where('status', 2)
+    //         ->where('expire_at', '>=', $currentDateTime)
+    //         ->where('type', $discount)
+    //         ->first();
+
+    //     $particularDiscounts = DB::table("discounts")
+    //         ->whereIn('vendor_id', array_column($data, 'vendor_id'))
+    //         ->where('status', 2)
+    //         ->where('expire_at', '>=', $currentDateTime)
+    //         ->where('type', $discount)
+    //         ->get()
+    //         ->keyBy('vendor_id');
+
+    //     $overallDiscountCategoryId = $overAllDiscount ? $overAllDiscount->category_id : null;
+
+    //     for ($i = 0; $i < count($data); $i++) {
+    //         $subData = $data[$i];
+    //         $destination = $subData->latitude . ',' . $subData->longitude;
+    //         $google = $this->getDistance($origin, $destination);
+    //         $subData->distance = $google['distance']['text'];
+    //         $subData->time = $google['duration']['text'];
+
+    //         $vendorId = $subData->vendor_id;
+    //         $categoryDiscount = $particularDiscounts->get($vendorId);
+
+    //         if ($categoryDiscount) {
+    //             if ($categoryDiscount->category_id == 0 || $categoryDiscount->category_id == $subData->category_id) {
+    //                 $subData->discount_percentage = $categoryDiscount->percentage;
+    //             } else {
+    //                 $subData->discount_percentage = 0;
+    //             }
+    //         } else if ($overAllDiscount) {
+    //             if ($overAllDiscount->category_id == 0 || $overAllDiscount->category_id == $subData->category_id) {
+    //                 $subData->discount_percentage = $overAllDiscount->percentage;
+    //             } else {
+    //                 $subData->discount_percentage = 0;
+    //             }
+    //         } else {
+    //             $subData->discount_percentage = 0;
+    //         }
+
+    //         if ($subData->discount_percentage != 0) {
+    //             $percentage = $subData->discount_percentage / 100;
+    //             $discountPrice = $subData->price * $percentage;
+    //             $subData->discounted_price = $subData->price - $discountPrice;
+    //         } else {
+    //             $subData->discounted_price = 0;
+    //         }
+
+    //         $data[$i] = $subData;
+    //     }
+
+    //     return $data;
+    // }
+
     private function addDistanceAndTime($data, $origin): mixed
     {
         $currentDateTime = Carbon::now();
+        $currentTime = Carbon::now()->format('H:i:s');
         $discount = $this->getModuleIdBasedOnCode(Constants::DISCOUNT);
         $overAllDiscount = DB::table("discounts")->where('vendor_id', 0)->where('status', 2)->where('expire_at', '>=', $currentDateTime)->where('type', $discount)->first();
         foreach ($data as $subData) {
+            $subData->vendor_closed =  Carbon::parse($currentTime)->gt($subData->close_time);
             $destination = $subData->latitude . ',' . $subData->longitude;
             $google = $this->getDistance($origin, $destination);
             $subData->distance = $google['distance']['text'];
             $subData->time = $google['duration']['text'];
+            if (!$subData->isDaily) {
+                $subData->day = DB::table('menu_available_days')
+                    ->where('menu_id', $subData->id)
+                    ->pluck('day')
+                    ->toArray();
+            }
             // Discounts
             $particularDiscount = DB::table("discounts")->where('vendor_id', $subData->vendor_id)->where('status', 2)->where('expire_at', '>=', $currentDateTime)->where('type', $discount)->first();
             if ($particularDiscount) {

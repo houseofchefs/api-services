@@ -50,7 +50,7 @@ class VendorController extends Controller
         $origin = $request->get('latitude') . ',' . $request->get('longitude');
 
         $data = DB::table('vendors')
-            ->selectRaw('vendors.id as id,vendors.name as name, vendors.image as image, vendors.latitude as latitude, vendors.longitude as longitude, vendors.rating as rating, vendors.ucount as count,IF(wishlists.id IS NULL, false, true) AS wishlist')
+            ->selectRaw('vendors.id as id, vendors.close_time as close_time, vendors.order_accept_time as order_accept_time, vendors.name as name, vendors.image as image, vendors.latitude as latitude, vendors.longitude as longitude, vendors.rating as rating, vendors.close_time as close_time, vendors.ucount as count,IF(wishlists.id IS NULL, false, true) AS wishlist')
             ->where('vendors.id', $id)
             ->whereExists(function ($query) {
                 $query->select(DB::raw(1))

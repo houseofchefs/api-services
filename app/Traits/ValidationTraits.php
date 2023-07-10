@@ -33,24 +33,25 @@ trait ValidationTraits
     protected function adminSignUpValidator(): array
     {
         return [
-            'mobile'    => 'required|min:8|max:16|unique:users,mobile',
-            "name"      => 'required|max:30',
+            'mobile'    => 'required|numeric|unique:users,mobile',
+            "name"      => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             "password"  => 'required',
             "role"      => 'required',
-            "email"     => 'required'
+            "email"     => 'required|email|unique:users,email'
         ];
     }
-
+    /**
+     * Update Admin Validator
+     */
     protected function updateAdminValidator($id): array
     {
         return [
             'mobile'    => [
                 'required',
-                'min:8',
-                'max:16', Rule::unique('users')->ignore($id),
+                'numeric', Rule::unique('users')->ignore($id),
             ],
-            "name"      => 'required|max:30',
-            "email"     => 'required'
+            "name"      => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
+            "email"     => ['required', 'email', Rule::unique('users')->ignore($id)]
         ];
     }
 
@@ -99,17 +100,17 @@ trait ValidationTraits
     protected function riderStoreValidator(): array
     {
         return [
-            'name'              => 'required|max:30',
+            'name'              => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             'mobile'            => 'required|unique:riders,mobile',
             'email'             => 'required|unique:riders,email',
-            'door_no'           => 'required',
+            'door_no'           => 'required|regex:/^[a-zA-Z0-9\s,\/]+$/',
             'account_number'    => 'required|max:16',
             'account_type'      => 'required',
-            'bank_name'         => 'required',
-            'holder_name'       => 'required',
-            'ifsc_code'         => 'required:max:14',
+            'bank_name'         => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'holder_name'       => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'ifsc_code'         => 'required|max:14||regex:/^[a-zA-Z0-9]+$/',
             'address_line'      => 'required',
-            'insurance_number'  => 'required',
+            'insurance_number'  => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'registration_number' => 'required',
             'password'          => 'required'
         ];
@@ -118,15 +119,15 @@ trait ValidationTraits
     protected function riderUpdateValidator($id): array
     {
         return [
-            'name'              => 'required|max:30',
+            'name'              => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             'mobile'            => ['required', Rule::unique('riders')->ignore($id)],
             'email'             => ['required', Rule::unique('riders')->ignore($id)],
-            'door_no'           => 'required',
+            'door_no'           => 'required|regex:/^[a-zA-Z0-9\s,\/]+$/',
             'account_number'    => 'required|max:16',
             'account_type'      => 'required',
-            'bank_name'         => 'required',
-            'holder_name'       => 'required',
-            'ifsc_code'         => 'required:max:14',
+            'bank_name'         => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'holder_name'       => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'ifsc_code'         => 'required|max:14|regex:/^[a-zA-Z0-9]+$/',
             'address_line'      => 'required',
             'insurance_number'  => 'required',
             'registration_number' => 'required',
@@ -151,7 +152,7 @@ trait ValidationTraits
     {
         return [
             'mobile'    => 'required|min:8|max:16|unique:customers,mobile',
-            "name"      => 'required|max:30',
+            "name"      => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             "dob"       => "required|date",
             "email"     => "required|email",
         ];
@@ -168,7 +169,7 @@ trait ValidationTraits
                 'min:8',
                 'max:16', Rule::unique('customers')->ignore($id),
             ],
-            "name"      => 'required|max:30',
+            "name"      => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             "dob"       => "required|date",
             "email"     => "required|email",
         ];
@@ -177,7 +178,7 @@ trait ValidationTraits
     protected function categoryValidator(): array
     {
         return [
-            'name'          => 'required|max:30',
+            'name'          => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             'image'         => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'slot'          => 'required',
             'vendor_id'     => 'required'
@@ -195,7 +196,7 @@ trait ValidationTraits
     protected function categoryUpdateValidator(): array
     {
         return [
-            'name'          => 'required|max:30',
+            'name'          => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             'slot'          => 'required',
             'status'        => 'required',
             'image'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
@@ -208,16 +209,17 @@ trait ValidationTraits
     protected function menuValidator($request): array
     {
         return [
-            'name'          => 'required|max:50',
+            'name'          => 'required|max:50|regex:/^[a-zA-Z0-9\s]+$/',
             'type'          => 'required',
-            'vendor_id'     => 'required',
-            'category_id'   => 'required',
-            'price'         => 'required',
+            'vendor_id'     => 'required|numeric',
+            'category_id'   => 'required|numeric',
+            'price'         => 'required|numeric|regex:/^[0-9]+$/',
             'image'         => 'required|image|mimes:jpeg,png,jpg|max:2048', //|max:2048
-            'isDaily'       => 'required',
-            'isPreOrder'    => 'required',
-            'description'   => 'required',
-            'min_quantity'  => 'required',
+            'isDaily'       => 'required|numeric',
+            'isPreOrder'    => 'required|numeric',
+            'description'   => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'min_quantity'  => 'required|numeric',
+            'ingredient_id' => 'required|array',
             "days" => [
                 Rule::when(function () use ($request) {
                     return $request->input('isPreOrder') == 1 && $request->input('isDaily') == 0;
@@ -232,19 +234,19 @@ trait ValidationTraits
     protected function updateMenuValidator($request): array
     {
         return [
-            'name'          => 'required|max:30',
+            'name'          => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             'type'          => 'required',
-            'vendor_id'     => 'required',
-            'category_id'   => 'required',
+            'vendor_id'     => 'required|numeric',
+            'category_id'   => 'required|numeric',
             'image'         => 'required',
-            'isDaily'       => 'required',
-            'isPreOrder'    => 'required',
+            'isDaily'       => 'required|numeric',
+            'isPreOrder'    => 'required|numeric',
             'image'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'description'   => 'required',
-            'price'         => 'required',
-            'min_quantity'  => 'required',
+            'description'   => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'price'         => 'required|numeric',
+            'min_quantity'  => 'required|numeric',
             'status'        => 'required',
-            "ingredient_id" => 'required',
+            "ingredient_id" => 'required|array',
             "days" => [
                 Rule::when(function () use ($request) {
                     return $request->input('isPreOrder') == 1 && $request->input('isDaily') == 0;
@@ -267,13 +269,15 @@ trait ValidationTraits
     {
         return [
             "price"         => 'required',
-            "customer_id"   => 'required',
-            "vendor_id"     => 'required',
+            "customer_id"   => 'required|numeric',
+            "vendor_id"     => 'required|numeric',
             "product_id"    => 'required',
             "address_id"    => 'required_unless:latitude,""',
             "longtitude"    => 'required_without:address_id',
             "latitude"      => 'required_without:address_id',
-            "cod"           => 'required'
+            "cod"           => 'required',
+            "expected_delivery" => "required|date",
+            "instructions"  => 'regex:/^[a-zA-Z0-9\s]+$/'
         ];
     }
 
@@ -281,11 +285,9 @@ trait ValidationTraits
     {
         return [
             "user_id"       => 'required',
-            "door_no"       => "required",
+            "door_no"       => "required|regex:/^[a-zA-Z0-9\s,\/]+$/",
             "address_line"  => "required",
             "address_type"  => "required",
-            "place_id"      => "required",
-            "pincode"       => "required",
             "latitude"      => "required",
             "longitude"     => "required",
             "guard"         => "required"
@@ -307,22 +309,22 @@ trait ValidationTraits
     protected function discountValidator(): array
     {
         return [
-            "name"          => 'required',
-            "description"   => 'required',
+            "name"          => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            "description"   => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'image'         => 'required|image|mimes:jpeg,png,jpg|max:2048',
             "type"          => 'required',
-            "category_id"   => 'required',
-            "vendor_id"     => 'required',
-            'percentage'    => 'required',
-            'expire_at'     => 'required'
+            "category_id"   => 'required|numeric',
+            "vendor_id"     => 'required|numeric',
+            'percentage'    => 'required|numeric',
+            'expire_at'     => 'required|date'
         ];
     }
 
     protected function discountUpdateValidator(): array
     {
         return [
-            "name"          => 'required',
-            "description"   => 'required',
+            "name"          => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            "description"   => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'image'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             "type"          => 'required',
             "status"        => 'required'
@@ -343,7 +345,8 @@ trait ValidationTraits
         return [
             'menu_id'   => 'required',
             'quantity'  => 'required',
-            'vendor_id'   => 'required'
+            'vendor_id' => 'required',
+            'slot_id'   => 'required'
         ];
     }
 
@@ -360,21 +363,22 @@ trait ValidationTraits
     protected function createVendorValidator(): array
     {
         return [
-            'name'              => 'required|max:30',
-            'mobile'            => 'required|unique:vendors,mobile',
-            'email'             => 'required|unique:vendors,email',
+            'name'              => 'required|max:30|regex:/^[\'a-zA-Z0-9\s]+$/',
+            'mobile'            => 'required|unique:vendors,mobile|numeric',
+            'email'             => 'required|unique:vendors,email|email',
             'image'             => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            'door_no'           => 'required',
-            'account_number'    => 'required|max:16',
+            'door_no'           => 'required|regex:/^[a-zA-Z0-9\s,\/]+$/',
+            'account_number'    => 'required|numeric',
             'account_type'      => 'required',
-            'bank_name'         => 'required',
-            'holder_name'       => 'required',
-            'ifsc_code'         => 'required:max:14',
+            'bank_name'         => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'holder_name'       => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'ifsc_code'         => 'required|max:14|regex:/^[a-zA-Z0-9]+$/',
             'address_line'      => 'required',
-            "open_time"         => 'required',
-            "close_time"        => 'required',
-            'order_accept_time' => 'required'
+            'open_time'         => 'required|date_format:H:i:s',
+            'close_time'        => 'required|date_format:H:i:s',
+            'order_accept_time' => 'required|date_format:H:i:s|before:close_time'
         ];
+
     }
 
     /**
@@ -383,20 +387,20 @@ trait ValidationTraits
     protected function updateVendorValidator($id): array
     {
         return [
-            'name'              => 'required|max:30',
-            'mobile'            => ['required', Rule::unique('vendors')->ignore($id)],
-            'email'             => ['required', Rule::unique('vendors')->ignore($id)],
-            'door_no'           => 'required',
-            'account_number'    => 'required|max:16',
+            'name'              => 'required|max:30|regex:/^[\'a-zA-Z0-9\s]+$/',
+            'mobile'            => ['required', 'numeric', Rule::unique('vendors')->ignore($id)],
+            'email'             => ['required', 'email', Rule::unique('vendors')->ignore($id)],
+            'door_no'           => 'required|regex:/^[a-zA-Z0-9\s,\/]+$/',
+            'account_number'    => 'required|numeric',
             'image'             => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'account_type'      => 'required',
-            'bank_name'         => 'required',
-            'holder_name'       => 'required',
-            'ifsc_code'         => 'required:max:14',
+            'bank_name'         => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'holder_name'       => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'ifsc_code'         => 'required:max:14|regex:/^[a-zA-Z0-9]+$/',
             'address_line'      => 'required',
-            "open_time"         => 'required',
-            "close_time"        => 'required',
-            'order_accept_time' => 'required'
+            "open_time"         => 'required|date_format:H:i:s',
+            "close_time"        => 'required|date_format:H:i:s',
+            'order_accept_time' => 'required|date_format:H:i:s|before:close_time'
         ];
     }
 
@@ -407,10 +411,10 @@ trait ValidationTraits
     {
         return [
             'mobile'    => 'required|min:8|max:16|unique:staff',
-            "name"      => 'required|max:30',
+            "name"      => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             "email"     => 'required|email|unique:staff',
             "password"  => 'required',
-            "vendor_id" => 'required',
+            "vendor_id" => 'required|numeric',
             "role"      => 'required'
         ];
     }
@@ -432,12 +436,12 @@ trait ValidationTraits
     protected function createProductValidation(): array
     {
         return [
-            "name"          => 'required',
-            "description"   => 'required',
-            "vendor_id"     => "required",
+            "name"          => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            "description"   => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            "vendor_id"     => "required|numeric",
             'image'         => 'required|image|mimes:jpeg,png,jpg|max:2048',
             "units"         => 'required',
-            "price"         => 'required'
+            "price"         => 'required|numeric'
         ];
     }
 
@@ -447,13 +451,13 @@ trait ValidationTraits
     protected function updateProductValidation(): array
     {
         return [
-            "name"          => 'required',
-            "description"   => 'required',
+            "name"          => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            "description"   => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'image'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             "units"         => 'required',
-            "price"         => 'required',
+            "price"         => 'required|numeric',
             "status"        => 'required',
-            "price"         => 'required'
+            "price"         => 'required|numeric'
         ];
     }
 
@@ -464,14 +468,14 @@ trait ValidationTraits
     {
         return [
             "vendor_id"     => 'required',
-            "booking_date"  => 'required',
             "address_id"    => 'required',
             "price"         => 'required',
             "items"         => 'required',
             "latitude"      => 'required',
             "longitude"     => 'required',
             "slot_id"       => 'required',
-            "cod"           => 'required'
+            "cod"           => 'required',
+            "expected_delivery" => 'required'
         ];
     }
 

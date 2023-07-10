@@ -18,16 +18,6 @@ use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
-    private $constant;
-
-    private $http;
-
-    public function __construct()
-    {
-        $this->constant = new Constants();
-        $this->http = new HTTPStatusCode();
-    }
-
     use ResponseTraits, ValidationTraits, CommonQueries;
 
     /**
@@ -35,12 +25,12 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
-        if ($request->type === $this->constant::DROPDOWN) {
+        if ($request->type === Constants::DROPDOWN) {
             $data = $this->categoriesCommonQuery()->get();
-            return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+            return $this->successResponse(true, $data, Constants::GET_SUCCESS);
         }
         $data = $this->categoriesCommonQuery()->paginate(10);
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     /**
@@ -59,9 +49,9 @@ class CategoryController extends Controller
         $id = auth()->user()->id;
         $validator = Validator::make($request->all(), $this->categoryValidator());
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
         // Modules #active
-        $modules = $this->getModuleIdBasedOnCode($this->constant::ACTIVE);
+        $modules = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
         // Create category
         DB::transaction(function () use ($request, $modules, $id) {
             $category = Categories::create(array_merge($request->only(['name', 'image', 'vendor_id']), array('status' => $modules, 'created_by' => $id, 'updated_by' => $id)));
@@ -72,7 +62,7 @@ class CategoryController extends Controller
             $category->image = $path;
             $category->save();
         });
-        return $this->successResponse(true, "", $this->constant::CATEGORY_CREATED, $this->http::CREATED);
+        return $this->successResponse(true, "", Constants::CATEGORY_CREATED, HTTPStatusCode::CREATED);
     }
 
     /**
@@ -88,8 +78,8 @@ class CategoryController extends Controller
      */
     public function edit(string $id)
     {
-        $data = $this->categoriesCommonQuery()->where('categories.id', $id)->get();
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        $data = $this->categoriesCommonQuery($id)->get();
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     /**
@@ -100,7 +90,7 @@ class CategoryController extends Controller
         $auth = auth()->user()->id;
         $validator = Validator::make($request->all(), $this->categoryUpdateValidator());
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
         // Update category
         DB::transaction(function () use ($request, $auth, $id) {
             $category = Categories::where('id', $id)->first();
@@ -117,7 +107,7 @@ class CategoryController extends Controller
             }
             $category->save();
         });
-        return $this->successResponse(true, "", $this->constant::CATEGORY_UPDATED);
+        return $this->successResponse(true, "", Constants::CATEGORY_UPDATED);
     }
 
     /**
@@ -131,7 +121,7 @@ class CategoryController extends Controller
     public function vendorDropDown()
     {
         $data =  DB::table('vendors')->select('name as label', 'id as value')->get();
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     public function masterCategory()
@@ -147,7 +137,7 @@ class CategoryController extends Controller
             ->addSelect(DB::raw('(SELECT GROUP_CONCAT(modules.module_name SEPARATOR ", ") FROM categories_has_slot
                                 JOIN modules ON categories_has_slot.slot_id = modules.id
                                 WHERE categories_has_slot.category_id = categories.id) as slots'))->get();
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     public function vendorBasedCategory($id)
@@ -161,13 +151,13 @@ class CategoryController extends Controller
         if (count($categoryIds) > 0) {
             $data = $this->categoriesCommonQuery()->where('categories.status', $active)->whereIn('categories.id', $categoryIds)->get();
         }
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
     public function activeCategory()
     {
         $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
         $data = $this->categoriesCommonQuery()->where("categories.status", $status)->paginate(10);
-        return $this->successResponse(true, $data, $this->constant::GET_SUCCESS);
+        return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 }

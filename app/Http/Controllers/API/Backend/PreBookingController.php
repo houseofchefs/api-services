@@ -23,38 +23,27 @@ use Razorpay\Api\Api;
 
 class PreBookingController extends Controller
 {
-    private $constant;
-
-    private $http;
-
-    public function __construct()
-    {
-        $this->constant = new Constants();
-        $this->http = new HTTPStatusCode();
-    }
-
     use ResponseTraits, ValidationTraits, CommonQueries;
 
     public function store(Request $request)
     {
         # code...
-        $id = auth($this->constant::CUSTOMER_GUARD)->user()->id;
+        $id = auth(Constants::CUSTOMER_GUARD)->user()->id;
         $validator = Validator::make($request->all(), $this->createPreBookingValidation());
 
         // If validator fails it will #returns
-        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), $this->constant::UNPROCESS_ENTITY, $this->http::UNPROCESS_ENTITY_CODE);
+        if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
         $slot = Modules::where('id', $request->slot_id)->first();
         $fromTime = explode('-', $slot->description);
         $count = Orders::count();
-        $module = $this->getModuleIdBasedOnCode($this->constant::ORDER_SUCCESS);
+        $module = $this->getModuleIdBasedOnCode(Constants::ORDER_SUCCESS);
 
         $booking = Orders::create(array_merge(
-            $request->only(['address_id', 'price', 'items', 'latitude', 'longitude', 'vendor_id', 'instructions']),
+            $request->only(['address_id', 'price', 'items', 'latitude', 'longitude', 'vendor_id', 'instructions', 'expected_delivery']),
             array(
                 "status"        => $module,
                 'customer_id' => $id,
-                "delivery_datetime" => $request->booking_date . " " . $fromTime[0] . ":00",
                 "pre_booking" => 1,
                 "order_no"      => "HOC0000" . $count + 1,
                 "item_count"    => count($request->get('menus'))
@@ -76,7 +65,7 @@ class PreBookingController extends Controller
                 'payment_capture'   => 1
             ]);
             $paymentData = [
-                "customer_id"           => auth($this->constant::CUSTOMER_GUARD)->user()->id,
+                "customer_id"           => auth(Constants::CUSTOMER_GUARD)->user()->id,
                 "order_id"              => $booking->id,
                 "amount"                => $request->price,
                 "razorpay_order_id"     => $razorpay->id,
@@ -87,7 +76,7 @@ class PreBookingController extends Controller
             ];
         } else {
             $paymentData = [
-                "customer_id"           => auth($this->constant::CUSTOMER_GUARD)->user()->id,
+                "customer_id"           => auth(Constants::CUSTOMER_GUARD)->user()->id,
                 "order_id"              => $booking->id,
                 "amount"                => $request->price,
                 "payment_method"        => "Cash on Delivery",
@@ -102,6 +91,6 @@ class PreBookingController extends Controller
         $address = Address::where('id', $request->address_id)->first();
         $booking['address'] = $address;
         $booking['payment'] = $payment;
-        return $this->successResponse(true, $booking, $this->constant::CREATED_SUCCESS, $this->http::CREATED);
+        return $this->successResponse(true, $booking, Constants::CREATED_SUCCESS, HTTPStatusCode::CREATED);
     }
 }

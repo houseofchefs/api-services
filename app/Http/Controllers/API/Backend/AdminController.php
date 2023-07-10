@@ -29,7 +29,7 @@ class AdminController extends Controller
     public function edit($id)
     {
         # code...
-        $data = User::with('roles')->role('admin')->where('id', $id)->first();
+        $data = User::with(['roles', 'status'])->role('admin')->where('id', $id)->first();
         return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
@@ -40,7 +40,7 @@ class AdminController extends Controller
         // If validator fails it will #returns
         if ($validator->fails()) return $this->errorResponse(false, $validator->errors(), Constants::UNPROCESS_ENTITY, HTTPStatusCode::UNPROCESS_ENTITY_CODE);
 
-        User::where('id', $id)->update($request->only(['name', 'mobile', 'email']));
+        User::where('id', $id)->update($request->only(['name', 'mobile', 'email', 'status']));
 
         return $this->successResponse(true, "", Constants::UPDATED_SUCCESS);
     }
