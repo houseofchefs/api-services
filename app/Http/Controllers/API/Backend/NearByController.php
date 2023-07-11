@@ -213,6 +213,7 @@ class NearByController extends Controller
         $origin = $latitude . ',' . $longitude;
         $customerId = auth(Constants::CUSTOMER_GUARD)->user()->id;
         $status = $this->getModuleIdBasedOnCode(Constants::ACTIVE);
+        $approved = $this->getModuleIdBasedOnCode(Constants::MENU_APPROVED);
         $radius = $this->getModuleBasedOnCode(Constants::RADIUS)->description; // in kilometers
         $withinVendor = $this->vendorWithInTheRadius($request->get('latitude'), $request->get('longitude'), $radius);
 
@@ -220,9 +221,10 @@ class NearByController extends Controller
             ->select('vendors.id as id', 'vendors.id as vendor_id', 'vendors.name', 'vendors.image', 'vendors.latitude', 'vendors.longitude', 'vendors.rating', 'vendors.ucount as count', DB::raw('IF(wishlists.id IS NULL, false, true) AS wishlist'))
             ->whereIn('vendors.id', $withinVendor)
             ->where('status', $status)
-            ->whereExists(function ($query) {
+            ->whereExists(function ($query) use ($approved) {
                 $query->select(DB::raw(1))
                     ->from('menus')
+                    ->where('menus.status', $approved)
                     ->whereRaw('menus.vendor_id = vendors.id');
             })
             ->leftJoin('wishlists', function ($join) use ($customerId) {
@@ -434,14 +436,14 @@ class NearByController extends Controller
                 $subQ->where('menus.name', $request->get('search'));
             })
             ->distinct()->get();
-            foreach($data as $subData) {
-                if (!$subData->isDaily) {
-                    $subData->day = DB::table('menu_available_days')
-                        ->where('menu_id', $subData->id)
-                        ->pluck('day')
-                        ->toArray();
-                }
+        foreach ($data as $subData) {
+            if (!$subData->isDaily) {
+                $subData->day = DB::table('menu_available_days')
+                    ->where('menu_id', $subData->id)
+                    ->pluck('day')
+                    ->toArray();
             }
+        }
         return $this->successResponse(true, $data, Constants::GET_SUCCESS);
     }
 
