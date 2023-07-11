@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "689289229201",
+    "project_id": "house-of-chefs-af81c",
+    "storage_bucket": "house-of-chefs-af81c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:689289229201:android:f06236389d1ad07ccea030",
+        "android_client_info": {
+          "package_name": "com.app.hoc_customer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "689289229201-9hmaonb450ne0a1pih2a766mt40gridt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCKloLeKGAyejRUs8GDro2yE0jmoC10ZQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "689289229201-9hmaonb450ne0a1pih2a766mt40gridt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

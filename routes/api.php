@@ -10,6 +10,7 @@ use App\Http\Controllers\API\Backend\DiscountController;
 use App\Http\Controllers\API\Backend\MenuController;
 use App\Http\Controllers\API\Backend\ModuleController;
 use App\Http\Controllers\API\Backend\NearByController;
+use App\Http\Controllers\API\Backend\NotificationController;
 use App\Http\Controllers\API\Backend\OrderController;
 use App\Http\Controllers\API\Backend\PreBookingController;
 use App\Http\Controllers\API\Backend\ProductController;
@@ -208,6 +209,10 @@ Route::prefix('v1')->middleware('api')->group(function () {
             Route::get('edit/{id}', 'edit');
             Route::put('update/{id}', 'update');
             Route::get('dashboard', 'dashboard');
+        });
+
+        Route::controller(NotificationController::class)->group(function () {
+            Route::get('send/notification', 'sendPushNotification');
         });
         // Route::prefix('rider')->controller(RiderController::class)->group(function () {
         //     Route::get('/', 'index');
