@@ -276,7 +276,7 @@ trait ValidationTraits
             "longtitude"    => 'required_without:address_id',
             "latitude"      => 'required_without:address_id',
             "cod"           => 'required',
-            "expected_delivery" => "required|date",
+            "expected_delivery" => "required",
             "instructions"  => 'regex:/^[a-zA-Z0-9\s]+$/'
         ];
     }
