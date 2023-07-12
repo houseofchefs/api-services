@@ -214,7 +214,7 @@ trait ValidationTraits
             'vendor_id'     => 'required|numeric',
             'category_id'   => 'required|numeric',
             'price'         => 'required|numeric|regex:/^[0-9]+$/',
-            'image'         => 'required|image|mimes:jpeg,png,jpg|max:2048', //|max:2048
+            'image'         => 'required|image|mimes:jpeg,png,jpg|max:2048|dimensions:width=1400,height=875', //|max:2048
             'isDaily'       => 'required|numeric',
             'isPreOrder'    => 'required|numeric',
             'description'   => 'required|regex:/^[a-zA-Z0-9\s]+$/',
@@ -233,6 +233,7 @@ trait ValidationTraits
      */
     protected function updateMenuValidator($request): array
     {
+        // 'dimensions:min_width=200,min_height=200,max_width=1000,max_height=1000',
         return [
             'name'          => 'required|max:30|regex:/^[a-zA-Z0-9\s]+$/',
             'type'          => 'required',
@@ -241,7 +242,7 @@ trait ValidationTraits
             'image'         => 'required',
             'isDaily'       => 'required|numeric',
             'isPreOrder'    => 'required|numeric',
-            'image'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'image'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048|dimensions:width=1400,height=875',
             'description'   => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'price'         => 'required|numeric',
             'min_quantity'  => 'required|numeric',
@@ -276,7 +277,7 @@ trait ValidationTraits
             "longtitude"    => 'required_without:address_id',
             "latitude"      => 'required_without:address_id',
             "cod"           => 'required',
-            "expected_delivery" => "required|date",
+            "expected_delivery" => "required",
             "instructions"  => 'regex:/^[a-zA-Z0-9\s]+$/'
         ];
     }
@@ -439,7 +440,7 @@ trait ValidationTraits
             "name"          => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             "description"   => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             "vendor_id"     => "required|numeric",
-            'image'         => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'image'         => 'required|image|mimes:jpeg,png,jpg|max:2048|dimensions:width=1400,height=875',
             "units"         => 'required',
             "price"         => 'required|numeric'
         ];
@@ -453,7 +454,7 @@ trait ValidationTraits
         return [
             "name"          => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             "description"   => 'required|regex:/^[a-zA-Z0-9\s]+$/',
-            'image'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'image'         => 'nullable|image|mimes:jpeg,png,jpg|max:2048|dimensions:width=1400,height=875',
             "units"         => 'required',
             "price"         => 'required|numeric',
             "status"        => 'required',
